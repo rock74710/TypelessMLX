@@ -126,7 +126,7 @@ TypelessMLX/
     StatusBarController.swift   # 選單列圖示
     SettingsView.swift          # 偏好設定視窗
     SetupWindowController.swift # 首次安裝流程
-    Logger.swift                # 日誌 (~/.Library/Logs/TypelessMLX/)
+    Logger.swift                # 日誌 (~/Library/Logs/TypelessMLX/)
 
 backend/
   transcribe_server.py          # 持久化 JSON-RPC Python server
@@ -152,10 +152,10 @@ backend/
 
 ## 偵錯 / 日誌
 
-日誌儲存於 `~/.Library/Logs/TypelessMLX/`，可用以下指令查看：
+日誌儲存於 `~/Library/Logs/TypelessMLX/`，可用以下指令查看：
 
 ```bash
-tail -f ~/.Library/Logs/TypelessMLX/typelessmlx.log
+tail -f ~/Library/Logs/TypelessMLX/typelessmlx.log
 ```
 
 ---
