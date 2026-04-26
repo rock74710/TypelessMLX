@@ -12,6 +12,7 @@ DMG_PATH="$BUILD_DIR/${APP_NAME}-${APP_VERSION}.dmg"
 INSTALL_APP=0
 ALLOW_ADHOC_SIGNING="${ALLOW_ADHOC_SIGNING:-0}"
 SIGN_IDENTITY="${SIGN_IDENTITY:-}"
+LOCAL_SIGN_IDENTITY="${LOCAL_SIGN_IDENTITY:-TypelessMLX Local Code Signing}"
 
 usage() {
     cat <<EOF
@@ -20,6 +21,8 @@ Usage: $0 [--install|-i] [--allow-adhoc]
 Environment:
   SIGN_IDENTITY           Code signing identity to use, for example:
                           Apple Development: Your Name (TEAMID)
+  LOCAL_SIGN_IDENTITY     Local fallback identity name. Defaults to:
+                          TypelessMLX Local Code Signing
   ALLOW_ADHOC_SIGNING=1   Allow ad-hoc signing when no identity is available.
                           Privacy permissions may not persist across rebuilds.
 EOF
@@ -47,10 +50,14 @@ done
 
 find_default_signing_identity() {
     security find-identity -v -p codesigning 2>/dev/null |
-        awk -F '"' '
+        awk -F '"' -v local_identity="$LOCAL_SIGN_IDENTITY" '
             /"Apple Development: / { print $2; found = 1; exit }
             /"Developer ID Application: / && fallback == "" { fallback = $2 }
-            END { if (!found && fallback != "") print fallback }
+            $2 == local_identity && local_fallback == "" { local_fallback = $2 }
+            END {
+                if (!found && fallback != "") print fallback
+                else if (!found && local_fallback != "") print local_fallback
+            }
         '
 }
 
@@ -75,6 +82,9 @@ if [ -z "$SIGN_IDENTITY" ]; then
         echo "  security find-identity -v -p codesigning"
         echo "  export SIGN_IDENTITY=\"Apple Development: Your Name (TEAMID)\""
         echo "  $0 --install"
+        echo ""
+        echo "Or create/use a stable local identity named:"
+        echo "  $LOCAL_SIGN_IDENTITY"
         echo ""
         echo "For disposable builds only:"
         echo "  ALLOW_ADHOC_SIGNING=1 $0 --install"
@@ -177,4 +187,4 @@ echo "  2. 授權輔助使用（系統設定 → 隱私權 → 輔助使用）"
 echo "  3. 授權輸入監控（系統設定 → 隱私權 → 輸入監控）"
 echo "  4. App 啟動後會自動顯示設定視窗，安裝 Python 環境"
 echo "  5. 下載並轉換 Breeze-ASR-25 模型（約 10-20 分鐘）"
-echo "  6. 完成後按 Right Option 即可開始錄音"
+echo "  6. 完成後按偏好設定中的辨識快捷鍵即可開始錄音"

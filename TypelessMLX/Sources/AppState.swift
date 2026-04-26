@@ -57,7 +57,7 @@ class AppState: ObservableObject {
     @AppStorage("showFloatingOverlay") var showFloatingOverlay: Bool = true
     @AppStorage("playSounds") var playSounds: Bool = false
     @AppStorage("launchAtLogin") var launchAtLogin: Bool = false
-    @AppStorage("hotkeyKeyCode") var hotkeyKeyCode: Int = 61  // Right Option
+    @AppStorage("hotkeyKeyCode") var hotkeyKeyCode: Int = RecognitionHotkey.defaultKeyCode
     @AppStorage("language") var language: String = "auto"
     @AppStorage("hotkeyMode") var hotkeyMode: String = "toggle"  // "toggle" or "hold"
     @AppStorage("maxHistoryCount") var maxHistoryCount: Int = 50
@@ -111,6 +111,20 @@ class AppState: ObservableObject {
 
     var selectedModel: MLXModel {
         Self.availableModels.first { $0.id == selectedModelID } ?? Self.availableModels[0]
+    }
+
+    var recognitionHotkey: RecognitionHotkey {
+        RecognitionHotkey.resolve(keyCode: hotkeyKeyCode)
+    }
+
+    var hotkeyDisplayName: String {
+        recognitionHotkey.displayName
+    }
+
+    func setRecognitionHotkey(_ hotkey: RecognitionHotkey) {
+        guard hotkeyKeyCode != hotkey.keyCode else { return }
+        objectWillChange.send()
+        hotkeyKeyCode = hotkey.keyCode
     }
 
     /// Resolved model path or HF repo for Python backend

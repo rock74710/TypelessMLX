@@ -41,6 +41,11 @@ class StatusBarController {
             .sink { [weak self] _ in self?.updateMenu() }
             .store(in: &cancellables)
 
+        NotificationCenter.default.publisher(for: UserDefaults.didChangeNotification)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in self?.updateMenu() }
+            .store(in: &cancellables)
+
         appState.$errorMessage
             .compactMap { $0 }
             .receive(on: DispatchQueue.main)
@@ -108,7 +113,7 @@ class StatusBarController {
 
         // Hotkey hint
         let modeText = appState.hotkeyMode == "hold" ? "按住錄音" : "按一下切換錄音"
-        let hintItem = NSMenuItem(title: "Right ⌥ Option → \(modeText)", action: nil, keyEquivalent: "")
+        let hintItem = NSMenuItem(title: "\(appState.hotkeyDisplayName) → \(modeText)", action: nil, keyEquivalent: "")
         hintItem.isEnabled = false
         menu.addItem(hintItem)
 

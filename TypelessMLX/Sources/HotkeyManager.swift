@@ -7,11 +7,14 @@ class HotkeyManager {
     private var appState: AppState?
     private var flagsMonitor: Any?
     private var localFlagsMonitor: Any?
+    private var eventTap: CFMachPort?
+    private var eventTapRunLoopSource: CFRunLoopSource?
     private var isRecording = false
     private var recordingStartTime: Date?
     private var overlay: RecordingOverlay?
     private let lock = NSLock()
     private var isProcessing = false
+    private var hotkeyIsDown = false
     private var consecutiveFailures = 0
     private static let maxConsecutiveFailures = 3
 
@@ -30,6 +33,14 @@ class HotkeyManager {
         logInfo("HotkeyManager", "Setup. keyCode=\(appState.hotkeyKeyCode), mode=\(appState.hotkeyMode)")
     }
 
+    func refreshMonitors() {
+        lock.lock()
+        hotkeyIsDown = false
+        lock.unlock()
+        setupMonitors()
+        logInfo("HotkeyManager", "Monitors refreshed")
+    }
+
     @objc private func handleAudioDeviceLost() {
         logError("HotkeyManager", "Audio device lost during recording")
         guard let appState = appState else { return }
@@ -37,6 +48,10 @@ class HotkeyManager {
     }
 
     private func setupMonitors() {
+        teardownMonitors()
+
+        setupEventTap()
+
         // Global monitor — fires when other apps are focused
         flagsMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.flagsChanged]) { [weak self] event in
             self?.handleFlagsChanged(event)
@@ -50,18 +65,72 @@ class HotkeyManager {
     }
 
     private func handleFlagsChanged(_ event: NSEvent) {
+        let keyCode = Int(event.keyCode)
+        let flags = event.modifierFlags
+        let flagsRaw = UInt64(flags.rawValue)
+        handleHotkeyTransition(
+            keyCode: keyCode,
+            flagsRaw: flagsRaw,
+            modifierIsActive: { hotkey in hotkey.modifier.isActive(flags) },
+            source: "NSEvent.flagsChanged"
+        )
+    }
+
+    private func handleCGEvent(_ event: CGEvent, type: CGEventType) {
+        guard type == .flagsChanged else { return }
+        let keyCode = Int(event.getIntegerValueField(.keyboardEventKeycode))
+        let flags = event.flags
+        let flagsRaw = UInt64(flags.rawValue)
+
+        handleHotkeyTransition(
+            keyCode: keyCode,
+            flagsRaw: flagsRaw,
+            modifierIsActive: { hotkey in hotkey.modifier.isActive(flags) },
+            source: "CGEvent.\(type.rawValue)"
+        )
+    }
+
+    private func handleHotkeyTransition(
+        keyCode: Int,
+        flagsRaw: UInt64,
+        modifierIsActive: (RecognitionHotkey) -> Bool,
+        source: String
+    ) {
         guard let appState = appState else { return }
 
-        let keyCode = Int(event.keyCode)
-        guard keyCode == appState.hotkeyKeyCode else { return }
-
-        let isKeyPressed = event.modifierFlags.contains(.option)
         let mode = appState.hotkeyMode
+        let configuredHotkey = appState.recognitionHotkey
 
         lock.lock()
+        let wasHotkeyDown = hotkeyIsDown
+        guard configuredHotkey.isRelevant(
+            eventKeyCode: keyCode,
+            flagsRaw: flagsRaw,
+            wasHotkeyDown: wasHotkeyDown
+        ) else {
+            lock.unlock()
+            if isConfiguredModifierFamilyEvent(hotkey: configuredHotkey, keyCode: keyCode, flagsRaw: flagsRaw) {
+                logInfo("HotkeyManager", "Observed non-hotkey \(configuredHotkey.displayName) family event. keyCode=\(keyCode), configured=\(configuredHotkey.keyCode), flags=0x\(String(flagsRaw, radix: 16))")
+            }
+            return
+        }
+
+        let isKeyPressed = configuredHotkey.isPressed(
+            eventKeyCode: keyCode,
+            flagsRaw: flagsRaw,
+            modifierIsActive: modifierIsActive(configuredHotkey)
+        )
+        guard hotkeyIsDown != isKeyPressed else {
+            lock.unlock()
+            logDebug("HotkeyManager", "Ignoring duplicate \(source) keyCode=\(keyCode), down=\(isKeyPressed), flags=0x\(String(flagsRaw, radix: 16))")
+            return
+        }
+        hotkeyIsDown = isKeyPressed
         let currentlyRecording = isRecording
         let processing = isProcessing
         lock.unlock()
+
+        logInfo("HotkeyManager", "Hotkey \(isKeyPressed ? "pressed" : "released") via \(source). keyCode=\(keyCode), configured=\(configuredHotkey.keyCode), hotkey=\(configuredHotkey.displayName), mode=\(mode), recording=\(currentlyRecording), processing=\(processing), flags=0x\(String(flagsRaw, radix: 16))")
 
         DispatchQueue.main.async {
             if mode == "hold" {
@@ -82,6 +151,66 @@ class HotkeyManager {
                 }
                 // key-up (isKeyPressed=false) is ignored in toggle mode
             }
+        }
+    }
+
+    private func isConfiguredModifierFamilyEvent(hotkey: RecognitionHotkey, keyCode: Int, flagsRaw: UInt64) -> Bool {
+        hotkey.relatedKeyCodes.contains(keyCode) || hotkey.isRelevant(eventKeyCode: keyCode, flagsRaw: flagsRaw, wasHotkeyDown: false)
+    }
+
+    private func setupEventTap() {
+        let mask = CGEventMask(1 << CGEventType.flagsChanged.rawValue)
+        let userInfo = Unmanaged.passUnretained(self).toOpaque()
+
+        guard let tap = CGEvent.tapCreate(
+            tap: .cgSessionEventTap,
+            place: .headInsertEventTap,
+            options: .listenOnly,
+            eventsOfInterest: mask,
+            callback: { _, type, event, userInfo in
+                guard let userInfo else {
+                    return Unmanaged.passUnretained(event)
+                }
+
+                let manager = Unmanaged<HotkeyManager>.fromOpaque(userInfo).takeUnretainedValue()
+                manager.handleCGEvent(event, type: type)
+                return Unmanaged.passUnretained(event)
+            },
+            userInfo: userInfo
+        ) else {
+            logWarn("HotkeyManager", "CGEvent tap unavailable; falling back to NSEvent flagsChanged monitors")
+            return
+        }
+
+        guard let source = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, tap, 0) else {
+            CFMachPortInvalidate(tap)
+            logWarn("HotkeyManager", "Failed to create CGEvent tap run-loop source")
+            return
+        }
+
+        eventTap = tap
+        eventTapRunLoopSource = source
+        CFRunLoopAddSource(CFRunLoopGetMain(), source, .commonModes)
+        CGEvent.tapEnable(tap: tap, enable: true)
+        logInfo("HotkeyManager", "CGEvent tap registered")
+    }
+
+    private func teardownMonitors() {
+        if let monitor = flagsMonitor {
+            NSEvent.removeMonitor(monitor)
+            flagsMonitor = nil
+        }
+        if let monitor = localFlagsMonitor {
+            NSEvent.removeMonitor(monitor)
+            localFlagsMonitor = nil
+        }
+        if let source = eventTapRunLoopSource {
+            CFRunLoopRemoveSource(CFRunLoopGetMain(), source, .commonModes)
+            eventTapRunLoopSource = nil
+        }
+        if let tap = eventTap {
+            CFMachPortInvalidate(tap)
+            eventTap = nil
         }
     }
 
@@ -303,8 +432,7 @@ class HotkeyManager {
     }
 
     deinit {
-        if let monitor = flagsMonitor { NSEvent.removeMonitor(monitor) }
-        if let monitor = localFlagsMonitor { NSEvent.removeMonitor(monitor) }
+        teardownMonitors()
         NotificationCenter.default.removeObserver(self)
     }
 }

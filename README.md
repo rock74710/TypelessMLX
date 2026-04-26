@@ -9,7 +9,7 @@
 
 ## 功能特色
 
-- 🎙️ **一鍵聽寫**：按右 Option（可自訂）開始/停止錄音，自動貼入游標位置
+- 🎙️ **一鍵聽寫**：按可自訂快捷鍵開始/停止錄音，自動貼入游標位置
 - 🇹🇼 **台灣中文優化**：使用Mac 語音辨識，可選擇 Breeze-ASR-25 模型，繁體中文效果最佳
 - ✏️ **自動標點符號**：語音辨識後自動補上逗號、句號、問號等標點
 - 🤖 **AI 文字修正**（選用）：macOS 26+ 可啟用 Apple Intelligence 進一步精煉標點與語句
@@ -85,7 +85,7 @@ export SIGN_IDENTITY="Apple Development: Your Name (TEAMID)"
 
 1. 啟動後選單列出現麥克風圖示
 2. 在任何輸入框游標點一下（讓視窗取得焦點）
-3. **按住右 Option** → 說話 → **放開**，文字自動打入
+3. **按住設定中的辨識快捷鍵** → 說話 → **放開**，文字自動打入
 
 > 可在設定中切換為「切換模式」（按一下開始，再按一下停止）
 
@@ -97,15 +97,15 @@ export SIGN_IDENTITY="Apple Development: Your Name (TEAMID)"
 |------|------|
 | 🎙️ 麥克風 | 錄製語音 |
 | ♿ 輔助使用 | 模擬 Cmd+V 貼入文字 |
-| ⌨️ 輸入監控 | 偵測全域 Right Option 快捷鍵 |
+| ⌨️ 輸入監控 | 偵測全域辨識快捷鍵 |
 
 ---
 
 ## 架構說明
 
 ```
-按快捷鍵 (Right Option)
-    └─ HotkeyManager (NSEvent.flagsChanged)
+按辨識快捷鍵
+    └─ HotkeyManager (CGEvent/NSEvent flagsChanged)
         └─ AudioRecorder (AVAudioEngine, WAV)
             └─ WhisperBridge (stdin/stdout JSON-RPC)
                 └─ transcribe_server.py
@@ -146,6 +146,7 @@ backend/
 |------|------|
 | 模型 | 選擇語音辨識模型 |
 | 語言 | 自動偵測 / 指定語言代碼（如 `zh`、`en`） |
+| 辨識快捷鍵 | 選擇用來開始/停止錄音的 modifier key |
 | 快捷鍵模式 | 按住模式 / 切換模式 |
 | 浮動指示器 | 錄音時顯示/隱藏底部面板 |
 | 文字修正 | 啟用 Apple Intelligence 標點修正（需 macOS 26+） |

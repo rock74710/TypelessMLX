@@ -98,7 +98,7 @@ class SetupViewModel: ObservableObject {
             }
 
             self.appendLog("")
-            self.appendLog("🎉 設定完成！請按 Right Option 開始錄音。")
+            self.appendLog("🎉 設定完成！請按 \(AppState.shared.hotkeyDisplayName) 開始錄音。")
 
             DispatchQueue.main.async {
                 self.isRunning = false

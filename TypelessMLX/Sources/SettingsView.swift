@@ -40,7 +40,29 @@ struct GeneralSettingsTab: View {
                 HStack {
                     Text("辨識快捷鍵")
                     Spacer()
-                    Text(hotkeyDisplayName).foregroundColor(.secondary)
+                    Menu {
+                        ForEach(RecognitionHotkey.all) { hotkey in
+                            Button {
+                                selectHotkey(hotkey)
+                            } label: {
+                                if appState.recognitionHotkey == hotkey {
+                                    Label(hotkey.displayName, systemImage: "checkmark")
+                                } else {
+                                    Text(hotkey.displayName)
+                                }
+                            }
+                        }
+                    } label: {
+                        HStack(spacing: 6) {
+                            Image(systemName: "keyboard")
+                            Text(appState.hotkeyDisplayName)
+                            Image(systemName: "chevron.down")
+                                .font(.caption2)
+                        }
+                        .frame(minWidth: 160, alignment: .trailing)
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
                 }
 
                 Picker("模式", selection: $appState.hotkeyMode) {
@@ -108,12 +130,9 @@ struct GeneralSettingsTab: View {
         return "\(version) (build \(build))"
     }
 
-    private var hotkeyDisplayName: String {
-        switch appState.hotkeyKeyCode {
-        case 61: return "Right ⌥ Option"
-        case 58: return "Left ⌥ Option"
-        default: return "Key \(appState.hotkeyKeyCode)"
-        }
+    private func selectHotkey(_ hotkey: RecognitionHotkey) {
+        appState.setRecognitionHotkey(hotkey)
+        HotkeyManager.shared.refreshMonitors()
     }
 
     private func setLaunchAtLogin(_ enabled: Bool) {
