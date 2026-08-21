@@ -1,0 +1,252 @@
+{
+  "corpus": {
+    "accuracy_evidence": false,
+    "audio": [
+      {
+        "category": "short_zh",
+        "channels": 1,
+        "duration_s": 1.7036875,
+        "expected_text": "今天天氣很好。",
+        "frames": 27259,
+        "path": "/private/tmp/typelessmlx-breeze-quant-corpus-smoke/short_zh.wav",
+        "sample_id": "short_zh",
+        "sample_rate_hz": 16000,
+        "sample_width_bytes": 2,
+        "sha256": "5f64e3a82aa02a471b9d25986634281aa32e9ec7c95303b742a7ac22e8c6192f",
+        "size_bytes": 58614
+      }
+    ],
+    "audio_dir": "/private/tmp/typelessmlx-breeze-quant-corpus-smoke",
+    "source": {
+      "accuracy_evidence": false,
+      "channels": 1,
+      "converter": "/usr/bin/afconvert",
+      "description": "Deterministic macOS say speech prompts for smoke/latency regression testing. These files are synthetic and must not be used as human accuracy evidence.",
+      "generation_policy": "Run say once per manifest item, then afconvert to mono 16 kHz PCM WAV. Keep the exact manifest text and generated audio hash in benchmark results.",
+      "generator": "/usr/bin/say",
+      "rate_words_per_minute": 165,
+      "sample_format": "PCM_S16LE",
+      "sample_rate_hz": 16000,
+      "type": "synthetic_macos_say",
+      "voice": "Meijia",
+      "voice_locale": "zh_TW"
+    }
+  },
+  "driver_command": "/Users/schsu/.local/share/typelessmlx/venv/bin/python benchmarks/breeze_quant/benchmark_models.py --model breeze-fp16=/Users/schsu/.local/share/typelessmlx/models/breeze-asr-25-mlx --sample-id short_zh --hot-runs 3 --audio-dir /tmp/typelessmlx-breeze-quant-corpus-smoke --output benchmarks/breeze_quant/results/fp16_smoke.json",
+  "driver_path": "/Users/schsu/Downloads/google/typelessmlx/benchmarks/breeze_quant/benchmark_models.py",
+  "driver_sha256": "4f83b726f8006d2588173eacc5f2701b423a1958c7b8a2ddc29643523f12483b",
+  "execution": {
+    "config_names": [
+      "zh_fp16_greedy"
+    ],
+    "hot_runs_requested": 3,
+    "ordering": "models and configs are run in CLI order, strictly sequentially",
+    "selected_sample_ids": [
+      "short_zh"
+    ],
+    "subprocess_policy": "fresh subprocess for every model/config pair"
+  },
+  "finished_at_utc": "2026-08-21T01:36:33.076+00:00",
+  "manifest_path": "/Users/schsu/Downloads/google/typelessmlx/benchmarks/breeze_quant/corpus_manifest.json",
+  "manifest_sha256": "7d4e3bbae5b03a627d4eaf2710aaa05026b11bfdeff008631f9e852ff6aeb161",
+  "result_type": "mlx_whisper_sequential_benchmark",
+  "runs": [
+    {
+      "audio_dir": "/private/tmp/typelessmlx-breeze-quant-corpus-smoke",
+      "cold": {
+        "first_inference": {
+          "audio_duration_s": 1.7036875,
+          "blank_output": false,
+          "elapsed_s": 1.0225571249902714,
+          "mx_active_memory_bytes": 3087111758,
+          "mx_cache_memory_bytes": 1165850040,
+          "mx_peak_memory_bytes": 3943971926,
+          "rtf": 0.60020228180947,
+          "transcript": "今天天氣很好"
+        },
+        "first_inference_sample_id": "short_zh",
+        "load_plus_first_inference_s": 1.2598499169980641,
+        "model_load": {
+          "elapsed_s": 0.23729279200779274,
+          "mx_active_memory_bytes": 3082784784,
+          "mx_cache_memory_bytes": 16212,
+          "mx_peak_memory_bytes": 3082784784
+        }
+      },
+      "config": {
+        "condition_on_previous_text": true,
+        "fp16": true,
+        "initial_prompt": "這是台灣中文與 English 混合語音辨識，請保留 API、MLX、Whisper、GitHub、URL、數字與英文大小寫。",
+        "language": "zh",
+        "task": "transcribe",
+        "temperature": 0.0,
+        "verbose": null,
+        "without_timestamps": true
+      },
+      "config_name": "zh_fp16_greedy",
+      "config_sha256": "d22b1f70a9cb07871d937382b2c970bbce87c6346ec59e5847933550eba84a72",
+      "created_at_utc": "2026-08-21T01:36:32.944+00:00",
+      "driver_command": "/Users/schsu/.local/share/typelessmlx/venv/bin/python /Users/schsu/Downloads/google/typelessmlx/benchmarks/breeze_quant/benchmark_models.py --worker --model-path /Users/schsu/.local/share/typelessmlx/models/breeze-asr-25-mlx --model-label breeze-fp16 --config-name zh_fp16_greedy --manifest /Users/schsu/Downloads/google/typelessmlx/benchmarks/breeze_quant/corpus_manifest.json --audio-dir /private/tmp/typelessmlx-breeze-quant-corpus-smoke --hot-runs 3 --sample-id short_zh",
+      "harness_path": "/Users/schsu/Downloads/google/typelessmlx/benchmarks/breeze_quant/benchmark_models.py",
+      "harness_sha256": "4f83b726f8006d2588173eacc5f2701b423a1958c7b8a2ddc29643523f12483b",
+      "hot_runs_requested": 3,
+      "manifest_path": "/Users/schsu/Downloads/google/typelessmlx/benchmarks/breeze_quant/corpus_manifest.json",
+      "manifest_sha256": "7d4e3bbae5b03a627d4eaf2710aaa05026b11bfdeff008631f9e852ff6aeb161",
+      "model": {
+        "config": {
+          "model_type": "whisper",
+          "n_audio_ctx": 1500,
+          "n_audio_head": 20,
+          "n_audio_layer": 32,
+          "n_audio_state": 1280,
+          "n_mels": 80,
+          "n_text_ctx": 448,
+          "n_text_head": 20,
+          "n_text_layer": 32,
+          "n_text_state": 1280,
+          "n_vocab": 51865
+        },
+        "config_path": "/Users/schsu/.local/share/typelessmlx/models/breeze-asr-25-mlx/config.json",
+        "config_sha256": "77d68bd8db0be90465fd7d35f8e4fa418297e449a27525060517a7e0df432c4b",
+        "files": {
+          "config.json": {
+            "sha256": "77d68bd8db0be90465fd7d35f8e4fa418297e449a27525060517a7e0df432c4b",
+            "size_bytes": 268
+          },
+          "weights.safetensors": {
+            "sha256": "c75f7bf32b82421d73d5e6f198883a60863613ae63cb59dc66a78edd72c62364",
+            "size_bytes": 3082909389
+          }
+        },
+        "model_tree_sha256": "2e6146adc30e4981a728c5b31da885fa41514ffea0e5313eb16b6c157f772980",
+        "path": "/Users/schsu/.local/share/typelessmlx/models/breeze-asr-25-mlx",
+        "weights_path": "/Users/schsu/.local/share/typelessmlx/models/breeze-asr-25-mlx/weights.safetensors",
+        "weights_sha256": "c75f7bf32b82421d73d5e6f198883a60863613ae63cb59dc66a78edd72c62364",
+        "weights_size_bytes": 3082909389
+      },
+      "model_label": "breeze-fp16",
+      "result_type": "mlx_whisper_worker_result",
+      "runtime": {
+        "machine": "arm64",
+        "macos_version": "27.0",
+        "mlx_version": "0.31.1",
+        "mlx_whisper_version": "0.4.3",
+        "numpy_version": "2.4.3",
+        "platform": "macOS-27.0-arm64-arm-64bit",
+        "processor": "arm",
+        "python": "3.12.11 (main, Aug 18 2025, 19:02:39) [Clang 20.1.4 ]",
+        "python_executable": "/Users/schsu/.local/share/typelessmlx/venv/bin/python",
+        "release": "27.0.0",
+        "system": "Darwin"
+      },
+      "samples": [
+        {
+          "audio": {
+            "category": "short_zh",
+            "channels": 1,
+            "duration_s": 1.7036875,
+            "expected_text": "今天天氣很好。",
+            "frames": 27259,
+            "path": "/private/tmp/typelessmlx-breeze-quant-corpus-smoke/short_zh.wav",
+            "sample_id": "short_zh",
+            "sample_rate_hz": 16000,
+            "sample_width_bytes": 2,
+            "sha256": "5f64e3a82aa02a471b9d25986634281aa32e9ec7c95303b742a7ac22e8c6192f",
+            "size_bytes": 58614
+          },
+          "cold_first_inference": {
+            "audio_duration_s": 1.7036875,
+            "blank_output": false,
+            "elapsed_s": 1.0225571249902714,
+            "mx_active_memory_bytes": 3087111758,
+            "mx_cache_memory_bytes": 1165850040,
+            "mx_peak_memory_bytes": 3943971926,
+            "rtf": 0.60020228180947,
+            "transcript": "今天天氣很好"
+          },
+          "hot_runs": [
+            {
+              "audio_duration_s": 1.7036875,
+              "blank_output": false,
+              "elapsed_s": 0.6290492079860996,
+              "mx_active_memory_bytes": 3087111758,
+              "mx_cache_memory_bytes": 1165850504,
+              "mx_peak_memory_bytes": 3925399734,
+              "rtf": 0.36922804680206883,
+              "transcript": "今天天氣很好"
+            },
+            {
+              "audio_duration_s": 1.7036875,
+              "blank_output": false,
+              "elapsed_s": 0.6286299170169514,
+              "mx_active_memory_bytes": 3087111758,
+              "mx_cache_memory_bytes": 1165850504,
+              "mx_peak_memory_bytes": 3925399734,
+              "rtf": 0.3689819388925207,
+              "transcript": "今天天氣很好"
+            },
+            {
+              "audio_duration_s": 1.7036875,
+              "blank_output": false,
+              "elapsed_s": 0.6261720409966074,
+              "mx_active_memory_bytes": 3087111758,
+              "mx_cache_memory_bytes": 1165850504,
+              "mx_peak_memory_bytes": 3925399734,
+              "rtf": 0.36753925881161154,
+              "transcript": "今天天氣很好"
+            }
+          ],
+          "sample": {
+            "audio_filename": "short_zh.wav",
+            "category": "short_zh",
+            "id": "short_zh",
+            "notes": "Short Taiwan Mandarin baseline.",
+            "text": "今天天氣很好。"
+          },
+          "summary": {
+            "hot_blank_output_count": 0,
+            "hot_blank_output_rate": 0.0,
+            "hot_elapsed_median_s": 0.6286299170169514,
+            "hot_elapsed_p95_s": 0.6290072788891848,
+            "hot_rtf_median": 0.3689819388925207,
+            "hot_rtf_p95": 0.369203436011114,
+            "hot_run_count": 3,
+            "hot_transcripts": [
+              "今天天氣很好",
+              "今天天氣很好",
+              "今天天氣很好"
+            ]
+          },
+          "warmup": {
+            "audio_duration_s": 1.7036875,
+            "blank_output": false,
+            "elapsed_s": 0.6365600420103874,
+            "mx_active_memory_bytes": 3087111758,
+            "mx_cache_memory_bytes": 1165850504,
+            "mx_peak_memory_bytes": 3925399734,
+            "rtf": 0.37363662174570594,
+            "transcript": "今天天氣很好"
+          }
+        }
+      ],
+      "schema_version": 1,
+      "worker_pid": 6370,
+      "worker_stderr": ""
+    }
+  ],
+  "runtime": {
+    "machine": "arm64",
+    "macos_version": "27.0",
+    "mlx_version": "0.31.1",
+    "mlx_whisper_version": "0.4.3",
+    "numpy_version": "2.4.3",
+    "platform": "macOS-27.0-arm64-arm-64bit",
+    "processor": "arm",
+    "python": "3.12.11 (main, Aug 18 2025, 19:02:39) [Clang 20.1.4 ]",
+    "python_executable": "/Users/schsu/.local/share/typelessmlx/venv/bin/python",
+    "release": "27.0.0",
+    "system": "Darwin"
+  },
+  "schema_version": 1,
+  "started_at_utc": "2026-08-21T01:36:27.092+00:00"
+}

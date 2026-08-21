@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "corpus_id": "tw-zh-en-code-switch-macos-say-v1",
+  "source": {
+    "type": "synthetic_macos_say",
+    "accuracy_evidence": false,
+    "description": "Deterministic macOS say speech prompts for smoke/latency regression testing. These files are synthetic and must not be used as human accuracy evidence.",
+    "generator": "/usr/bin/say",
+    "converter": "/usr/bin/afconvert",
+    "voice": "Meijia",
+    "voice_locale": "zh_TW",
+    "rate_words_per_minute": 165,
+    "sample_rate_hz": 16000,
+    "channels": 1,
+    "sample_format": "PCM_S16LE",
+    "generation_policy": "Run say once per manifest item, then afconvert to mono 16 kHz PCM WAV. Keep the exact manifest text and generated audio hash in benchmark results."
+  },
+  "samples": [
+    {
+      "id": "short_zh",
+      "category": "short_zh",
+      "text": "今天天氣很好。",
+      "audio_filename": "short_zh.wav",
+      "notes": "Short Taiwan Mandarin baseline."
+    },
+    {
+      "id": "zh_start_mixed",
+      "category": "zh_start_mixed",
+      "text": "請幫我開啟 Python API，然後呼叫 Whisper model。",
+      "audio_filename": "zh_start_mixed.wav",
+      "notes": "Chinese-start code-switch with product and programming terms."
+    },
+    {
+      "id": "english_start_mixed",
+      "category": "english_start_mixed",
+      "text": "Please open 設定，切換到快速模式。",
+      "audio_filename": "english_start_mixed.wav",
+      "notes": "English-start code-switch with a Taiwan Mandarin UI phrase."
+    },
+    {
+      "id": "terms_api_numbers",
+      "category": "terms_api_numbers",
+      "text": "版本是 MLX 0.31.1，API endpoint 是 /v1/audio/transcriptions，日期是 2026 年 8 月 21 日。",
+      "audio_filename": "terms_api_numbers.wav",
+      "notes": "Technical terms, API path, version, date, and numbers."
+    },
+    {
+      "id": "longer_sentence",
+      "category": "longer_sentence",
+      "text": "今天下午我們要在台北開一個 meeting，先確認 GitHub issue，再把 release candidate 部署到 staging，最後請同事用 iPhone 測試語音輸入。",
+      "audio_filename": "longer_sentence.wav",
+      "notes": "Longer Taiwan Mandarin sentence with several English technical terms."
+    }
+  ]
+}

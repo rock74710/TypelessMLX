@@ -1,0 +1,2676 @@
+{
+  "corpus": {
+    "accuracy_evidence": false,
+    "audio": [
+      {
+        "category": "short_zh",
+        "channels": 1,
+        "duration_s": 1.7036875,
+        "expected_text": "今天天氣很好。",
+        "frames": 27259,
+        "path": "/private/tmp/typelessmlx-breeze-quant-corpus-v1/short_zh.wav",
+        "sample_id": "short_zh",
+        "sample_rate_hz": 16000,
+        "sample_width_bytes": 2,
+        "sha256": "5f64e3a82aa02a471b9d25986634281aa32e9ec7c95303b742a7ac22e8c6192f",
+        "size_bytes": 58614
+      },
+      {
+        "category": "zh_start_mixed",
+        "channels": 1,
+        "duration_s": 5.5001875,
+        "expected_text": "請幫我開啟 Python API，然後呼叫 Whisper model。",
+        "frames": 88003,
+        "path": "/private/tmp/typelessmlx-breeze-quant-corpus-v1/zh_start_mixed.wav",
+        "sample_id": "zh_start_mixed",
+        "sample_rate_hz": 16000,
+        "sample_width_bytes": 2,
+        "sha256": "a74e5dfd3d01fa8c8bfa8dcae7a6efae9936d8226bf483fd090f0bd18f41545d",
+        "size_bytes": 180102
+      },
+      {
+        "category": "english_start_mixed",
+        "channels": 1,
+        "duration_s": 3.680375,
+        "expected_text": "Please open 設定，切換到快速模式。",
+        "frames": 58886,
+        "path": "/private/tmp/typelessmlx-breeze-quant-corpus-v1/english_start_mixed.wav",
+        "sample_id": "english_start_mixed",
+        "sample_rate_hz": 16000,
+        "sample_width_bytes": 2,
+        "sha256": "740c8a3ed36b64ddb2b5bdc5b0be35a1198f00452e6eca4d96fd537443c7d00a",
+        "size_bytes": 121868
+      },
+      {
+        "category": "terms_api_numbers",
+        "channels": 1,
+        "duration_s": 12.497,
+        "expected_text": "版本是 MLX 0.31.1，API endpoint 是 /v1/audio/transcriptions，日期是 2026 年 8 月 21 日。",
+        "frames": 199952,
+        "path": "/private/tmp/typelessmlx-breeze-quant-corpus-v1/terms_api_numbers.wav",
+        "sample_id": "terms_api_numbers",
+        "sample_rate_hz": 16000,
+        "sample_width_bytes": 2,
+        "sha256": "085c4e9e14fa61e223ffb865b9f82ae27b74e1afa76c28ca77c3e89349de0261",
+        "size_bytes": 404000
+      },
+      {
+        "category": "longer_sentence",
+        "channels": 1,
+        "duration_s": 12.9305625,
+        "expected_text": "今天下午我們要在台北開一個 meeting，先確認 GitHub issue，再把 release candidate 部署到 staging，最後請同事用 iPhone 測試語音輸入。",
+        "frames": 206889,
+        "path": "/private/tmp/typelessmlx-breeze-quant-corpus-v1/longer_sentence.wav",
+        "sample_id": "longer_sentence",
+        "sample_rate_hz": 16000,
+        "sample_width_bytes": 2,
+        "sha256": "ec314b4f674da829ed0390fe523a7cc4fd0ff71b3763f8913da9bbd44b05e2a9",
+        "size_bytes": 417874
+      }
+    ],
+    "audio_dir": "/private/tmp/typelessmlx-breeze-quant-corpus-v1",
+    "source": {
+      "accuracy_evidence": false,
+      "channels": 1,
+      "converter": "/usr/bin/afconvert",
+      "description": "Deterministic macOS say speech prompts for smoke/latency regression testing. These files are synthetic and must not be used as human accuracy evidence.",
+      "generation_policy": "Run say once per manifest item, then afconvert to mono 16 kHz PCM WAV. Keep the exact manifest text and generated audio hash in benchmark results.",
+      "generator": "/usr/bin/say",
+      "rate_words_per_minute": 165,
+      "sample_format": "PCM_S16LE",
+      "sample_rate_hz": 16000,
+      "type": "synthetic_macos_say",
+      "voice": "Meijia",
+      "voice_locale": "zh_TW"
+    }
+  },
+  "driver_command": "/Users/schsu/.local/share/typelessmlx/venv/bin/python benchmarks/breeze_quant/benchmark_models.py --model breeze-fp16=/Users/schsu/.local/share/typelessmlx/models/breeze-asr-25-mlx --model breeze-8bit=/Users/schsu/.local/share/typelessmlx/models/breeze-asr-25-mlx-8bit --model breeze-6bit=/Users/schsu/.local/share/typelessmlx/models/breeze-asr-25-mlx-6bit --model breeze-hybrid=/Users/schsu/.local/share/typelessmlx/models/breeze-asr-25-mlx-hybrid --model breeze-4bit=/Users/schsu/.cache/huggingface/hub/models--BRlin--Breeze-ASR-25-mlx-4bit/snapshots/ba89325dcf6911c3fcd1ba7c7e813b1907f2a9e5 --hot-runs 3 --audio-dir /tmp/typelessmlx-breeze-quant-corpus-v1 --output benchmarks/breeze_quant/results/full_comparison.json",
+  "driver_path": "/Users/schsu/Downloads/google/typelessmlx/benchmarks/breeze_quant/benchmark_models.py",
+  "driver_sha256": "4f83b726f8006d2588173eacc5f2701b423a1958c7b8a2ddc29643523f12483b",
+  "execution": {
+    "config_names": [
+      "zh_fp16_greedy"
+    ],
+    "hot_runs_requested": 3,
+    "ordering": "models and configs are run in CLI order, strictly sequentially",
+    "selected_sample_ids": [
+      "short_zh",
+      "zh_start_mixed",
+      "english_start_mixed",
+      "terms_api_numbers",
+      "longer_sentence"
+    ],
+    "subprocess_policy": "fresh subprocess for every model/config pair"
+  },
+  "finished_at_utc": "2026-08-21T01:41:09.449+00:00",
+  "manifest_path": "/Users/schsu/Downloads/google/typelessmlx/benchmarks/breeze_quant/corpus_manifest.json",
+  "manifest_sha256": "7d4e3bbae5b03a627d4eaf2710aaa05026b11bfdeff008631f9e852ff6aeb161",
+  "result_type": "mlx_whisper_sequential_benchmark",
+  "runs": [
+    {
+      "audio_dir": "/private/tmp/typelessmlx-breeze-quant-corpus-v1",
+      "cold": {
+        "first_inference": {
+          "audio_duration_s": 1.7036875,
+          "blank_output": false,
+          "elapsed_s": 0.7447326659748796,
+          "mx_active_memory_bytes": 3087111758,
+          "mx_cache_memory_bytes": 1165852400,
+          "mx_peak_memory_bytes": 3943971926,
+          "rtf": 0.4371298527311374,
+          "transcript": "今天天氣很好"
+        },
+        "first_inference_sample_id": "short_zh",
+        "load_plus_first_inference_s": 0.8728921659640037,
+        "model_load": {
+          "elapsed_s": 0.12815949998912401,
+          "mx_active_memory_bytes": 3082784784,
+          "mx_cache_memory_bytes": 16212,
+          "mx_peak_memory_bytes": 3082784784
+        }
+      },
+      "config": {
+        "condition_on_previous_text": true,
+        "fp16": true,
+        "initial_prompt": "這是台灣中文與 English 混合語音辨識，請保留 API、MLX、Whisper、GitHub、URL、數字與英文大小寫。",
+        "language": "zh",
+        "task": "transcribe",
+        "temperature": 0.0,
+        "verbose": null,
+        "without_timestamps": true
+      },
+      "config_name": "zh_fp16_greedy",
+      "config_sha256": "d22b1f70a9cb07871d937382b2c970bbce87c6346ec59e5847933550eba84a72",
+      "created_at_utc": "2026-08-21T01:39:56.626+00:00",
+      "driver_command": "/Users/schsu/.local/share/typelessmlx/venv/bin/python /Users/schsu/Downloads/google/typelessmlx/benchmarks/breeze_quant/benchmark_models.py --worker --model-path /Users/schsu/.local/share/typelessmlx/models/breeze-asr-25-mlx --model-label breeze-fp16 --config-name zh_fp16_greedy --manifest /Users/schsu/Downloads/google/typelessmlx/benchmarks/breeze_quant/corpus_manifest.json --audio-dir /private/tmp/typelessmlx-breeze-quant-corpus-v1 --hot-runs 3 --sample-id short_zh --sample-id zh_start_mixed --sample-id english_start_mixed --sample-id terms_api_numbers --sample-id longer_sentence",
+      "harness_path": "/Users/schsu/Downloads/google/typelessmlx/benchmarks/breeze_quant/benchmark_models.py",
+      "harness_sha256": "4f83b726f8006d2588173eacc5f2701b423a1958c7b8a2ddc29643523f12483b",
+      "hot_runs_requested": 3,
+      "manifest_path": "/Users/schsu/Downloads/google/typelessmlx/benchmarks/breeze_quant/corpus_manifest.json",
+      "manifest_sha256": "7d4e3bbae5b03a627d4eaf2710aaa05026b11bfdeff008631f9e852ff6aeb161",
+      "model": {
+        "config": {
+          "model_type": "whisper",
+          "n_audio_ctx": 1500,
+          "n_audio_head": 20,
+          "n_audio_layer": 32,
+          "n_audio_state": 1280,
+          "n_mels": 80,
+          "n_text_ctx": 448,
+          "n_text_head": 20,
+          "n_text_layer": 32,
+          "n_text_state": 1280,
+          "n_vocab": 51865
+        },
+        "config_path": "/Users/schsu/.local/share/typelessmlx/models/breeze-asr-25-mlx/config.json",
+        "config_sha256": "77d68bd8db0be90465fd7d35f8e4fa418297e449a27525060517a7e0df432c4b",
+        "files": {
+          "config.json": {
+            "sha256": "77d68bd8db0be90465fd7d35f8e4fa418297e449a27525060517a7e0df432c4b",
+            "size_bytes": 268
+          },
+          "weights.safetensors": {
+            "sha256": "c75f7bf32b82421d73d5e6f198883a60863613ae63cb59dc66a78edd72c62364",
+            "size_bytes": 3082909389
+          }
+        },
+        "model_tree_sha256": "2e6146adc30e4981a728c5b31da885fa41514ffea0e5313eb16b6c157f772980",
+        "path": "/Users/schsu/.local/share/typelessmlx/models/breeze-asr-25-mlx",
+        "weights_path": "/Users/schsu/.local/share/typelessmlx/models/breeze-asr-25-mlx/weights.safetensors",
+        "weights_sha256": "c75f7bf32b82421d73d5e6f198883a60863613ae63cb59dc66a78edd72c62364",
+        "weights_size_bytes": 3082909389
+      },
+      "model_label": "breeze-fp16",
+      "result_type": "mlx_whisper_worker_result",
+      "runtime": {
+        "machine": "arm64",
+        "macos_version": "27.0",
+        "mlx_version": "0.31.1",
+        "mlx_whisper_version": "0.4.3",
+        "numpy_version": "2.4.3",
+        "platform": "macOS-27.0-arm64-arm-64bit",
+        "processor": "arm",
+        "python": "3.12.11 (main, Aug 18 2025, 19:02:39) [Clang 20.1.4 ]",
+        "python_executable": "/Users/schsu/.local/share/typelessmlx/venv/bin/python",
+        "release": "27.0.0",
+        "system": "Darwin"
+      },
+      "samples": [
+        {
+          "audio": {
+            "category": "short_zh",
+            "channels": 1,
+            "duration_s": 1.7036875,
+            "expected_text": "今天天氣很好。",
+            "frames": 27259,
+            "path": "/private/tmp/typelessmlx-breeze-quant-corpus-v1/short_zh.wav",
+            "sample_id": "short_zh",
+            "sample_rate_hz": 16000,
+            "sample_width_bytes": 2,
+            "sha256": "5f64e3a82aa02a471b9d25986634281aa32e9ec7c95303b742a7ac22e8c6192f",
+            "size_bytes": 58614
+          },
+          "cold_first_inference": {
+            "audio_duration_s": 1.7036875,
+            "blank_output": false,
+            "elapsed_s": 0.7447326659748796,
+            "mx_active_memory_bytes": 3087111758,
+            "mx_cache_memory_bytes": 1165852400,
+            "mx_peak_memory_bytes": 3943971926,
+            "rtf": 0.4371298527311374,
+            "transcript": "今天天氣很好"
+          },
+          "hot_runs": [
+            {
+              "audio_duration_s": 1.7036875,
+              "blank_output": false,
+              "elapsed_s": 0.6332790000014938,
+              "mx_active_memory_bytes": 3087111758,
+              "mx_cache_memory_bytes": 1165852864,
+              "mx_peak_memory_bytes": 3925399734,
+              "rtf": 0.37171077442400313,
+              "transcript": "今天天氣很好"
+            },
+            {
+              "audio_duration_s": 1.7036875,
+              "blank_output": false,
+              "elapsed_s": 0.6492395830282476,
+              "mx_active_memory_bytes": 3087111758,
+              "mx_cache_memory_bytes": 1165852864,
+              "mx_peak_memory_bytes": 3925399734,
+              "rtf": 0.3810790318225893,
+              "transcript": "今天天氣很好"
+            },
+            {
+              "audio_duration_s": 1.7036875,
+              "blank_output": false,
+              "elapsed_s": 0.6428919160098303,
+              "mx_active_memory_bytes": 3087111758,
+              "mx_cache_memory_bytes": 1165852864,
+              "mx_peak_memory_bytes": 3925399734,
+              "rtf": 0.3773531918323227,
+              "transcript": "今天天氣很好"
+            }
+          ],
+          "sample": {
+            "audio_filename": "short_zh.wav",
+            "category": "short_zh",
+            "id": "short_zh",
+            "notes": "Short Taiwan Mandarin baseline.",
+            "text": "今天天氣很好。"
+          },
+          "summary": {
+            "hot_blank_output_count": 0,
+            "hot_blank_output_rate": 0.0,
+            "hot_elapsed_median_s": 0.6428919160098303,
+            "hot_elapsed_p95_s": 0.6486048163264059,
+            "hot_rtf_median": 0.3773531918323227,
+            "hot_rtf_p95": 0.3807064478235626,
+            "hot_run_count": 3,
+            "hot_transcripts": [
+              "今天天氣很好",
+              "今天天氣很好",
+              "今天天氣很好"
+            ]
+          },
+          "warmup": {
+            "audio_duration_s": 1.7036875,
+            "blank_output": false,
+            "elapsed_s": 0.6607329169928562,
+            "mx_active_memory_bytes": 3087111758,
+            "mx_cache_memory_bytes": 1165852864,
+            "mx_peak_memory_bytes": 3925399734,
+            "rtf": 0.387825183311409,
+            "transcript": "今天天氣很好"
+          }
+        },
+        {
+          "audio": {
+            "category": "zh_start_mixed",
+            "channels": 1,
+            "duration_s": 5.5001875,
+            "expected_text": "請幫我開啟 Python API，然後呼叫 Whisper model。",
+            "frames": 88003,
+            "path": "/private/tmp/typelessmlx-breeze-quant-corpus-v1/zh_start_mixed.wav",
+            "sample_id": "zh_start_mixed",
+            "sample_rate_hz": 16000,
+            "sample_width_bytes": 2,
+            "sha256": "a74e5dfd3d01fa8c8bfa8dcae7a6efae9936d8226bf483fd090f0bd18f41545d",
+            "size_bytes": 180102
+          },
+          "hot_runs": [
+            {
+              "audio_duration_s": 5.5001875,
+              "blank_output": false,
+              "elapsed_s": 0.7576141250028741,
+              "mx_active_memory_bytes": 3087111758,
+              "mx_cache_memory_bytes": 1227914720,
+              "mx_peak_memory_bytes": 3927775966,
+              "rtf": 0.13774332693255895,
+              "transcript": "請幫我開啟 Python API 然後呼叫 Whisper model"
+            },
+            {
+              "audio_duration_s": 5.5001875,
+              "blank_output": false,
+              "elapsed_s": 0.7757971250102855,
+              "mx_active_memory_bytes": 3087111758,
+              "mx_cache_memory_bytes": 1227914720,
+              "mx_peak_memory_bytes": 3927775966,
+              "rtf": 0.14104921423320305,
+              "transcript": "請幫我開啟 Python API 然後呼叫 Whisper model"
+            },
+            {
+              "audio_duration_s": 5.5001875,
+              "blank_output": false,
+              "elapsed_s": 0.768931500002509,
+              "mx_active_memory_bytes": 3087111758,
+              "mx_cache_memory_bytes": 1227914720,
+              "mx_peak_memory_bytes": 3927775966,
+              "rtf": 0.1398009613313199,
+              "transcript": "請幫我開啟 Python API 然後呼叫 Whisper model"
+            }
+          ],
+          "sample": {
+            "audio_filename": "zh_start_mixed.wav",
+            "category": "zh_start_mixed",
+            "id": "zh_start_mixed",
+            "notes": "Chinese-start code-switch with product and programming terms.",
+            "text": "請幫我開啟 Python API，然後呼叫 Whisper model。"
+          },
+          "summary": {
+            "hot_blank_output_count": 0,
+            "hot_blank_output_rate": 0.0,
+            "hot_elapsed_median_s": 0.768931500002509,
+            "hot_elapsed_p95_s": 0.7751105625095078,
+            "hot_rtf_median": 0.1398009613313199,
+            "hot_rtf_p95": 0.14092438894301473,
+            "hot_run_count": 3,
+            "hot_transcripts": [
+              "請幫我開啟 Python API 然後呼叫 Whisper model",
+              "請幫我開啟 Python API 然後呼叫 Whisper model",
+              "請幫我開啟 Python API 然後呼叫 Whisper model"
+            ]
+          },
+          "warmup": {
+            "audio_duration_s": 5.5001875,
+            "blank_output": false,
+            "elapsed_s": 0.7669425000203773,
+            "mx_active_memory_bytes": 3087111758,
+            "mx_cache_memory_bytes": 1227914720,
+            "mx_peak_memory_bytes": 3927775966,
+            "rtf": 0.13943933729902433,
+            "transcript": "請幫我開啟 Python API 然後呼叫 Whisper model"
+          }
+        },
+        {
+          "audio": {
+            "category": "english_start_mixed",
+            "channels": 1,
+            "duration_s": 3.680375,
+            "expected_text": "Please open 設定，切換到快速模式。",
+            "frames": 58886,
+            "path": "/private/tmp/typelessmlx-breeze-quant-corpus-v1/english_start_mixed.wav",
+            "sample_id": "english_start_mixed",
+            "sample_rate_hz": 16000,
+            "sample_width_bytes": 2,
+            "sha256": "740c8a3ed36b64ddb2b5bdc5b0be35a1198f00452e6eca4d96fd537443c7d00a",
+            "size_bytes": 121868
+          },
+          "hot_runs": [
+            {
+              "audio_duration_s": 3.680375,
+              "blank_output": false,
+              "elapsed_s": 0.743250583007466,
+              "mx_active_memory_bytes": 3087111758,
+              "mx_cache_memory_bytes": 1242791392,
+              "mx_peak_memory_bytes": 3926547166,
+              "rtf": 0.2019496880093648,
+              "transcript": "Please open 設定 切換到快速模式"
+            },
+            {
+              "audio_duration_s": 3.680375,
+              "blank_output": false,
+              "elapsed_s": 0.7437212500080932,
+              "mx_active_memory_bytes": 3087111758,
+              "mx_cache_memory_bytes": 1242791392,
+              "mx_peak_memory_bytes": 3926547166,
+              "rtf": 0.20207757361901793,
+              "transcript": "Please open 設定 切換到快速模式"
+            },
+            {
+              "audio_duration_s": 3.680375,
+              "blank_output": false,
+              "elapsed_s": 0.7298527499951888,
+              "mx_active_memory_bytes": 3087111758,
+              "mx_cache_memory_bytes": 1242791392,
+              "mx_peak_memory_bytes": 3926547166,
+              "rtf": 0.1983093434759199,
+              "transcript": "Please open 設定 切換到快速模式"
+            }
+          ],
+          "sample": {
+            "audio_filename": "english_start_mixed.wav",
+            "category": "english_start_mixed",
+            "id": "english_start_mixed",
+            "notes": "English-start code-switch with a Taiwan Mandarin UI phrase.",
+            "text": "Please open 設定，切換到快速模式。"
+          },
+          "summary": {
+            "hot_blank_output_count": 0,
+            "hot_blank_output_rate": 0.0,
+            "hot_elapsed_median_s": 0.743250583007466,
+            "hot_elapsed_p95_s": 0.7436741833080305,
+            "hot_rtf_median": 0.2019496880093648,
+            "hot_rtf_p95": 0.20206478505805262,
+            "hot_run_count": 3,
+            "hot_transcripts": [
+              "Please open 設定 切換到快速模式",
+              "Please open 設定 切換到快速模式",
+              "Please open 設定 切換到快速模式"
+            ]
+          },
+          "warmup": {
+            "audio_duration_s": 3.680375,
+            "blank_output": false,
+            "elapsed_s": 0.7483162079879548,
+            "mx_active_memory_bytes": 3087111758,
+            "mx_cache_memory_bytes": 1242791392,
+            "mx_peak_memory_bytes": 3926547166,
+            "rtf": 0.20332607627971466,
+            "transcript": "Please open 設定 切換到快速模式"
+          }
+        },
+        {
+          "audio": {
+            "category": "terms_api_numbers",
+            "channels": 1,
+            "duration_s": 12.497,
+            "expected_text": "版本是 MLX 0.31.1，API endpoint 是 /v1/audio/transcriptions，日期是 2026 年 8 月 21 日。",
+            "frames": 199952,
+            "path": "/private/tmp/typelessmlx-breeze-quant-corpus-v1/terms_api_numbers.wav",
+            "sample_id": "terms_api_numbers",
+            "sample_rate_hz": 16000,
+            "sample_width_bytes": 2,
+            "sha256": "085c4e9e14fa61e223ffb865b9f82ae27b74e1afa76c28ca77c3e89349de0261",
+            "size_bytes": 404000
+          },
+          "hot_runs": [
+            {
+              "audio_duration_s": 12.497,
+              "blank_output": false,
+              "elapsed_s": 0.9299960830248892,
+              "mx_active_memory_bytes": 3087111758,
+              "mx_cache_memory_bytes": 1315805464,
+              "mx_peak_memory_bytes": 3932609246,
+              "rtf": 0.07441754685323591,
+              "transcript": "版本是 MLX 0 3 1 1 API endpoint 是 VE Audio Transcriptions ZFAC 2026 年 8 月 21 日"
+            },
+            {
+              "audio_duration_s": 12.497,
+              "blank_output": false,
+              "elapsed_s": 0.9283425839967094,
+              "mx_active_memory_bytes": 3087111758,
+              "mx_cache_memory_bytes": 1315805464,
+              "mx_peak_memory_bytes": 3932609246,
+              "rtf": 0.07428523517617903,
+              "transcript": "版本是 MLX 0 3 1 1 API endpoint 是 VE Audio Transcriptions ZFAC 2026 年 8 月 21 日"
+            },
+            {
+              "audio_duration_s": 12.497,
+              "blank_output": false,
+              "elapsed_s": 0.9329528750095051,
+              "mx_active_memory_bytes": 3087111758,
+              "mx_cache_memory_bytes": 1315805464,
+              "mx_peak_memory_bytes": 3932609246,
+              "rtf": 0.07465414699603945,
+              "transcript": "版本是 MLX 0 3 1 1 API endpoint 是 VE Audio Transcriptions ZFAC 2026 年 8 月 21 日"
+            }
+          ],
+          "sample": {
+            "audio_filename": "terms_api_numbers.wav",
+            "category": "terms_api_numbers",
+            "id": "terms_api_numbers",
+            "notes": "Technical terms, API path, version, date, and numbers.",
+            "text": "版本是 MLX 0.31.1，API endpoint 是 /v1/audio/transcriptions，日期是 2026 年 8 月 21 日。"
+          },
+          "summary": {
+            "hot_blank_output_count": 0,
+            "hot_blank_output_rate": 0.0,
+            "hot_elapsed_median_s": 0.9299960830248892,
+            "hot_elapsed_p95_s": 0.9326571958110434,
+            "hot_rtf_median": 0.07441754685323591,
+            "hot_rtf_p95": 0.0746304869817591,
+            "hot_run_count": 3,
+            "hot_transcripts": [
+              "版本是 MLX 0 3 1 1 API endpoint 是 VE Audio Transcriptions ZFAC 2026 年 8 月 21 日",
+              "版本是 MLX 0 3 1 1 API endpoint 是 VE Audio Transcriptions ZFAC 2026 年 8 月 21 日",
+              "版本是 MLX 0 3 1 1 API endpoint 是 VE Audio Transcriptions ZFAC 2026 年 8 月 21 日"
+            ]
+          },
+          "warmup": {
+            "audio_duration_s": 12.497,
+            "blank_output": false,
+            "elapsed_s": 0.9572824999922886,
+            "mx_active_memory_bytes": 3087111758,
+            "mx_cache_memory_bytes": 1315805464,
+            "mx_peak_memory_bytes": 3932609246,
+            "rtf": 0.07660098423559963,
+            "transcript": "版本是 MLX 0 3 1 1 API endpoint 是 VE Audio Transcriptions ZFAC 2026 年 8 月 21 日"
+          }
+        },
+        {
+          "audio": {
+            "category": "longer_sentence",
+            "channels": 1,
+            "duration_s": 12.9305625,
+            "expected_text": "今天下午我們要在台北開一個 meeting，先確認 GitHub issue，再把 release candidate 部署到 staging，最後請同事用 iPhone 測試語音輸入。",
+            "frames": 206889,
+            "path": "/private/tmp/typelessmlx-breeze-quant-corpus-v1/longer_sentence.wav",
+            "sample_id": "longer_sentence",
+            "sample_rate_hz": 16000,
+            "sample_width_bytes": 2,
+            "sha256": "ec314b4f674da829ed0390fe523a7cc4fd0ff71b3763f8913da9bbd44b05e2a9",
+            "size_bytes": 417874
+          },
+          "hot_runs": [
+            {
+              "audio_duration_s": 12.9305625,
+              "blank_output": false,
+              "elapsed_s": 1.0514136249839794,
+              "mx_active_memory_bytes": 3087111758,
+              "mx_cache_memory_bytes": 1398842232,
+              "mx_peak_memory_bytes": 3932887774,
+              "rtf": 0.08131228823061482,
+              "transcript": "今天下午我們要在台北開一個 meeting先確認 GitHub issue再把 release candidate 部署到 staging最後請同事用 iPhone 測試語音輸入"
+            },
+            {
+              "audio_duration_s": 12.9305625,
+              "blank_output": false,
+              "elapsed_s": 1.055155666981591,
+              "mx_active_memory_bytes": 3087111758,
+              "mx_cache_memory_bytes": 1398842232,
+              "mx_peak_memory_bytes": 3932887774,
+              "rtf": 0.0816016833746862,
+              "transcript": "今天下午我們要在台北開一個 meeting先確認 GitHub issue再把 release candidate 部署到 staging最後請同事用 iPhone 測試語音輸入"
+            },
+            {
+              "audio_duration_s": 12.9305625,
+              "blank_output": false,
+              "elapsed_s": 1.0588807500025723,
+              "mx_active_memory_bytes": 3087111758,
+              "mx_cache_memory_bytes": 1398842232,
+              "mx_peak_memory_bytes": 3932887774,
+              "rtf": 0.08188976697669358,
+              "transcript": "今天下午我們要在台北開一個 meeting先確認 GitHub issue再把 release candidate 部署到 staging最後請同事用 iPhone 測試語音輸入"
+            }
+          ],
+          "sample": {
+            "audio_filename": "longer_sentence.wav",
+            "category": "longer_sentence",
+            "id": "longer_sentence",
+            "notes": "Longer Taiwan Mandarin sentence with several English technical terms.",
+            "text": "今天下午我們要在台北開一個 meeting，先確認 GitHub issue，再把 release candidate 部署到 staging，最後請同事用 iPhone 測試語音輸入。"
+          },
+          "summary": {
+            "hot_blank_output_count": 0,
+            "hot_blank_output_rate": 0.0,
+            "hot_elapsed_median_s": 1.055155666981591,
+            "hot_elapsed_p95_s": 1.058508241700474,
+            "hot_rtf_median": 0.0816016833746862,
+            "hot_rtf_p95": 0.08186095861649284,
+            "hot_run_count": 3,
+            "hot_transcripts": [
+              "今天下午我們要在台北開一個 meeting先確認 GitHub issue再把 release candidate 部署到 staging最後請同事用 iPhone 測試語音輸入",
+              "今天下午我們要在台北開一個 meeting先確認 GitHub issue再把 release candidate 部署到 staging最後請同事用 iPhone 測試語音輸入",
+              "今天下午我們要在台北開一個 meeting先確認 GitHub issue再把 release candidate 部署到 staging最後請同事用 iPhone 測試語音輸入"
+            ]
+          },
+          "warmup": {
+            "audio_duration_s": 12.9305625,
+            "blank_output": false,
+            "elapsed_s": 1.0590367919940036,
+            "mx_active_memory_bytes": 3087111758,
+            "mx_cache_memory_bytes": 1398842232,
+            "mx_peak_memory_bytes": 3932887774,
+            "rtf": 0.08190183466450153,
+            "transcript": "今天下午我們要在台北開一個 meeting先確認 GitHub issue再把 release candidate 部署到 staging最後請同事用 iPhone 測試語音輸入"
+          }
+        }
+      ],
+      "schema_version": 1,
+      "worker_pid": 6946,
+      "worker_stderr": ""
+    },
+    {
+      "audio_dir": "/private/tmp/typelessmlx-breeze-quant-corpus-v1",
+      "cold": {
+        "first_inference": {
+          "audio_duration_s": 1.7036875,
+          "blank_output": false,
+          "elapsed_s": 0.7566000840160996,
+          "mx_active_memory_bytes": 1661736526,
+          "mx_cache_memory_bytes": 1090554872,
+          "mx_peak_memory_bytes": 2518596694,
+          "rtf": 0.4440955773967348,
+          "transcript": "今天天氣很好"
+        },
+        "first_inference_sample_id": "short_zh",
+        "load_plus_first_inference_s": 0.8423908760014456,
+        "model_load": {
+          "elapsed_s": 0.085790791985346,
+          "mx_active_memory_bytes": 1657409552,
+          "mx_cache_memory_bytes": 16236,
+          "mx_peak_memory_bytes": 1657409552
+        }
+      },
+      "config": {
+        "condition_on_previous_text": true,
+        "fp16": true,
+        "initial_prompt": "這是台灣中文與 English 混合語音辨識，請保留 API、MLX、Whisper、GitHub、URL、數字與英文大小寫。",
+        "language": "zh",
+        "task": "transcribe",
+        "temperature": 0.0,
+        "verbose": null,
+        "without_timestamps": true
+      },
+      "config_name": "zh_fp16_greedy",
+      "config_sha256": "d22b1f70a9cb07871d937382b2c970bbce87c6346ec59e5847933550eba84a72",
+      "created_at_utc": "2026-08-21T01:40:14.643+00:00",
+      "driver_command": "/Users/schsu/.local/share/typelessmlx/venv/bin/python /Users/schsu/Downloads/google/typelessmlx/benchmarks/breeze_quant/benchmark_models.py --worker --model-path /Users/schsu/.local/share/typelessmlx/models/breeze-asr-25-mlx-8bit --model-label breeze-8bit --config-name zh_fp16_greedy --manifest /Users/schsu/Downloads/google/typelessmlx/benchmarks/breeze_quant/corpus_manifest.json --audio-dir /private/tmp/typelessmlx-breeze-quant-corpus-v1 --hot-runs 3 --sample-id short_zh --sample-id zh_start_mixed --sample-id english_start_mixed --sample-id terms_api_numbers --sample-id longer_sentence",
+      "harness_path": "/Users/schsu/Downloads/google/typelessmlx/benchmarks/breeze_quant/benchmark_models.py",
+      "harness_sha256": "4f83b726f8006d2588173eacc5f2701b423a1958c7b8a2ddc29643523f12483b",
+      "hot_runs_requested": 3,
+      "manifest_path": "/Users/schsu/Downloads/google/typelessmlx/benchmarks/breeze_quant/corpus_manifest.json",
+      "manifest_sha256": "7d4e3bbae5b03a627d4eaf2710aaa05026b11bfdeff008631f9e852ff6aeb161",
+      "model": {
+        "config": {
+          "model_type": "whisper",
+          "n_audio_ctx": 1500,
+          "n_audio_head": 20,
+          "n_audio_layer": 32,
+          "n_audio_state": 1280,
+          "n_mels": 80,
+          "n_text_ctx": 448,
+          "n_text_head": 20,
+          "n_text_layer": 32,
+          "n_text_state": 1280,
+          "n_vocab": 51865,
+          "quantization": {
+            "bits": 8,
+            "group_size": 64,
+            "mode": "affine"
+          }
+        },
+        "config_path": "/Users/schsu/.local/share/typelessmlx/models/breeze-asr-25-mlx-8bit/config.json",
+        "config_sha256": "88c30b8d3af8bcd2ef6faf00b10ef46d87e2ba7b576a906bb53723309bd376a8",
+        "files": {
+          "config.json": {
+            "sha256": "88c30b8d3af8bcd2ef6faf00b10ef46d87e2ba7b576a906bb53723309bd376a8",
+            "size_bytes": 368
+          },
+          "quantization_manifest.json": {
+            "sha256": "20d85a1246be1317a036b570529b5169d94a16b069ae96a8bb199f0472c1410a",
+            "size_bytes": 38796
+          },
+          "weights.safetensors": {
+            "sha256": "e4f8afaf5f5dc4c1a8d9e74e0101f5c66f4d6148db17b73d005fb753d071a8cf",
+            "size_bytes": 1644525304
+          }
+        },
+        "model_tree_sha256": "224ad4ebc22c4579997742d0cff4804b9818aa2c6102c2a26d2deff7b8eff4cd",
+        "path": "/Users/schsu/.local/share/typelessmlx/models/breeze-asr-25-mlx-8bit",
+        "weights_path": "/Users/schsu/.local/share/typelessmlx/models/breeze-asr-25-mlx-8bit/weights.safetensors",
+        "weights_sha256": "e4f8afaf5f5dc4c1a8d9e74e0101f5c66f4d6148db17b73d005fb753d071a8cf",
+        "weights_size_bytes": 1644525304
+      },
+      "model_label": "breeze-8bit",
+      "result_type": "mlx_whisper_worker_result",
+      "runtime": {
+        "machine": "arm64",
+        "macos_version": "27.0",
+        "mlx_version": "0.31.1",
+        "mlx_whisper_version": "0.4.3",
+        "numpy_version": "2.4.3",
+        "platform": "macOS-27.0-arm64-arm-64bit",
+        "processor": "arm",
+        "python": "3.12.11 (main, Aug 18 2025, 19:02:39) [Clang 20.1.4 ]",
+        "python_executable": "/Users/schsu/.local/share/typelessmlx/venv/bin/python",
+        "release": "27.0.0",
+        "system": "Darwin"
+      },
+      "samples": [
+        {
+          "audio": {
+            "category": "short_zh",
+            "channels": 1,
+            "duration_s": 1.7036875,
+            "expected_text": "今天天氣很好。",
+            "frames": 27259,
+            "path": "/private/tmp/typelessmlx-breeze-quant-corpus-v1/short_zh.wav",
+            "sample_id": "short_zh",
+            "sample_rate_hz": 16000,
+            "sample_width_bytes": 2,
+            "sha256": "5f64e3a82aa02a471b9d25986634281aa32e9ec7c95303b742a7ac22e8c6192f",
+            "size_bytes": 58614
+          },
+          "cold_first_inference": {
+            "audio_duration_s": 1.7036875,
+            "blank_output": false,
+            "elapsed_s": 0.7566000840160996,
+            "mx_active_memory_bytes": 1661736526,
+            "mx_cache_memory_bytes": 1090554872,
+            "mx_peak_memory_bytes": 2518596694,
+            "rtf": 0.4440955773967348,
+            "transcript": "今天天氣很好"
+          },
+          "hot_runs": [
+            {
+              "audio_duration_s": 1.7036875,
+              "blank_output": false,
+              "elapsed_s": 0.6312880000041332,
+              "mx_active_memory_bytes": 1661736526,
+              "mx_cache_memory_bytes": 1090555336,
+              "mx_peak_memory_bytes": 2499762910,
+              "rtf": 0.3705421328759724,
+              "transcript": "今天天氣很好"
+            },
+            {
+              "audio_duration_s": 1.7036875,
+              "blank_output": false,
+              "elapsed_s": 0.6339029590017162,
+              "mx_active_memory_bytes": 1661736526,
+              "mx_cache_memory_bytes": 1090555336,
+              "mx_peak_memory_bytes": 2499762910,
+              "rtf": 0.3720770147117451,
+              "transcript": "今天天氣很好"
+            },
+            {
+              "audio_duration_s": 1.7036875,
+              "blank_output": false,
+              "elapsed_s": 0.6313186250044964,
+              "mx_active_memory_bytes": 1661736526,
+              "mx_cache_memory_bytes": 1090555336,
+              "mx_peak_memory_bytes": 2499762910,
+              "rtf": 0.3705601085906285,
+              "transcript": "今天天氣很好"
+            }
+          ],
+          "sample": {
+            "audio_filename": "short_zh.wav",
+            "category": "short_zh",
+            "id": "short_zh",
+            "notes": "Short Taiwan Mandarin baseline.",
+            "text": "今天天氣很好。"
+          },
+          "summary": {
+            "hot_blank_output_count": 0,
+            "hot_blank_output_rate": 0.0,
+            "hot_elapsed_median_s": 0.6313186250044964,
+            "hot_elapsed_p95_s": 0.6336445256019942,
+            "hot_rtf_median": 0.3705601085906285,
+            "hot_rtf_p95": 0.3719253240996334,
+            "hot_run_count": 3,
+            "hot_transcripts": [
+              "今天天氣很好",
+              "今天天氣很好",
+              "今天天氣很好"
+            ]
+          },
+          "warmup": {
+            "audio_duration_s": 1.7036875,
+            "blank_output": false,
+            "elapsed_s": 0.6318037089949939,
+            "mx_active_memory_bytes": 1661736526,
+            "mx_cache_memory_bytes": 1090555336,
+            "mx_peak_memory_bytes": 2499762910,
+            "rtf": 0.3708448345104334,
+            "transcript": "今天天氣很好"
+          }
+        },
+        {
+          "audio": {
+            "category": "zh_start_mixed",
+            "channels": 1,
+            "duration_s": 5.5001875,
+            "expected_text": "請幫我開啟 Python API，然後呼叫 Whisper model。",
+            "frames": 88003,
+            "path": "/private/tmp/typelessmlx-breeze-quant-corpus-v1/zh_start_mixed.wav",
+            "sample_id": "zh_start_mixed",
+            "sample_rate_hz": 16000,
+            "sample_width_bytes": 2,
+            "sha256": "a74e5dfd3d01fa8c8bfa8dcae7a6efae9936d8226bf483fd090f0bd18f41545d",
+            "size_bytes": 180102
+          },
+          "hot_runs": [
+            {
+              "audio_duration_s": 5.5001875,
+              "blank_output": false,
+              "elapsed_s": 0.7447179169976152,
+              "mx_active_memory_bytes": 1661736526,
+              "mx_cache_memory_bytes": 1149496856,
+              "mx_peak_memory_bytes": 2502400734,
+              "rtf": 0.13539864177314231,
+              "transcript": "請幫我開啟 Python API 然後呼叫 Whisper model"
+            },
+            {
+              "audio_duration_s": 5.5001875,
+              "blank_output": false,
+              "elapsed_s": 0.7256722090241965,
+              "mx_active_memory_bytes": 1661736526,
+              "mx_cache_memory_bytes": 1149496856,
+              "mx_peak_memory_bytes": 2502400734,
+              "rtf": 0.13193590382585985,
+              "transcript": "請幫我開啟 Python API 然後呼叫 Whisper model"
+            },
+            {
+              "audio_duration_s": 5.5001875,
+              "blank_output": false,
+              "elapsed_s": 0.7222471669956576,
+              "mx_active_memory_bytes": 1661736526,
+              "mx_cache_memory_bytes": 1149496856,
+              "mx_peak_memory_bytes": 2502400734,
+              "rtf": 0.1313131901404557,
+              "transcript": "請幫我開啟 Python API 然後呼叫 Whisper model"
+            }
+          ],
+          "sample": {
+            "audio_filename": "zh_start_mixed.wav",
+            "category": "zh_start_mixed",
+            "id": "zh_start_mixed",
+            "notes": "Chinese-start code-switch with product and programming terms.",
+            "text": "請幫我開啟 Python API，然後呼叫 Whisper model。"
+          },
+          "summary": {
+            "hot_blank_output_count": 0,
+            "hot_blank_output_rate": 0.0,
+            "hot_elapsed_median_s": 0.7256722090241965,
+            "hot_elapsed_p95_s": 0.7428133462002734,
+            "hot_rtf_median": 0.13193590382585985,
+            "hot_rtf_p95": 0.13505236797841408,
+            "hot_run_count": 3,
+            "hot_transcripts": [
+              "請幫我開啟 Python API 然後呼叫 Whisper model",
+              "請幫我開啟 Python API 然後呼叫 Whisper model",
+              "請幫我開啟 Python API 然後呼叫 Whisper model"
+            ]
+          },
+          "warmup": {
+            "audio_duration_s": 5.5001875,
+            "blank_output": false,
+            "elapsed_s": 0.7195752919942606,
+            "mx_active_memory_bytes": 1661736526,
+            "mx_cache_memory_bytes": 1149496856,
+            "mx_peak_memory_bytes": 2502400734,
+            "rtf": 0.13082741124630035,
+            "transcript": "請幫我開啟 Python API 然後呼叫 Whisper model"
+          }
+        },
+        {
+          "audio": {
+            "category": "english_start_mixed",
+            "channels": 1,
+            "duration_s": 3.680375,
+            "expected_text": "Please open 設定，切換到快速模式。",
+            "frames": 58886,
+            "path": "/private/tmp/typelessmlx-breeze-quant-corpus-v1/english_start_mixed.wav",
+            "sample_id": "english_start_mixed",
+            "sample_rate_hz": 16000,
+            "sample_width_bytes": 2,
+            "sha256": "740c8a3ed36b64ddb2b5bdc5b0be35a1198f00452e6eca4d96fd537443c7d00a",
+            "size_bytes": 121868
+          },
+          "hot_runs": [
+            {
+              "audio_duration_s": 3.680375,
+              "blank_output": false,
+              "elapsed_s": 0.7115867499960586,
+              "mx_active_memory_bytes": 1661736526,
+              "mx_cache_memory_bytes": 1164373528,
+              "mx_peak_memory_bytes": 2501171934,
+              "rtf": 0.1933462622683989,
+              "transcript": "Please open 設定 切換到快速模式"
+            },
+            {
+              "audio_duration_s": 3.680375,
+              "blank_output": false,
+              "elapsed_s": 0.7147482500004116,
+              "mx_active_memory_bytes": 1661736526,
+              "mx_cache_memory_bytes": 1164373528,
+              "mx_peak_memory_bytes": 2501171934,
+              "rtf": 0.19420527799488138,
+              "transcript": "Please open 設定 切換到快速模式"
+            },
+            {
+              "audio_duration_s": 3.680375,
+              "blank_output": false,
+              "elapsed_s": 0.7142072499846108,
+              "mx_active_memory_bytes": 1661736526,
+              "mx_cache_memory_bytes": 1164373528,
+              "mx_peak_memory_bytes": 2501171934,
+              "rtf": 0.1940582821002237,
+              "transcript": "Please open 設定 切換到快速模式"
+            }
+          ],
+          "sample": {
+            "audio_filename": "english_start_mixed.wav",
+            "category": "english_start_mixed",
+            "id": "english_start_mixed",
+            "notes": "English-start code-switch with a Taiwan Mandarin UI phrase.",
+            "text": "Please open 設定，切換到快速模式。"
+          },
+          "summary": {
+            "hot_blank_output_count": 0,
+            "hot_blank_output_rate": 0.0,
+            "hot_elapsed_median_s": 0.7142072499846108,
+            "hot_elapsed_p95_s": 0.7146941499988315,
+            "hot_rtf_median": 0.1940582821002237,
+            "hot_rtf_p95": 0.19419057840541562,
+            "hot_run_count": 3,
+            "hot_transcripts": [
+              "Please open 設定 切換到快速模式",
+              "Please open 設定 切換到快速模式",
+              "Please open 設定 切換到快速模式"
+            ]
+          },
+          "warmup": {
+            "audio_duration_s": 3.680375,
+            "blank_output": false,
+            "elapsed_s": 0.7138368340092711,
+            "mx_active_memory_bytes": 1661736526,
+            "mx_cache_memory_bytes": 1164373528,
+            "mx_peak_memory_bytes": 2501171934,
+            "rtf": 0.19395763584125833,
+            "transcript": "Please open 設定 切換到快速模式"
+          }
+        },
+        {
+          "audio": {
+            "category": "terms_api_numbers",
+            "channels": 1,
+            "duration_s": 12.497,
+            "expected_text": "版本是 MLX 0.31.1，API endpoint 是 /v1/audio/transcriptions，日期是 2026 年 8 月 21 日。",
+            "frames": 199952,
+            "path": "/private/tmp/typelessmlx-breeze-quant-corpus-v1/terms_api_numbers.wav",
+            "sample_id": "terms_api_numbers",
+            "sample_rate_hz": 16000,
+            "sample_width_bytes": 2,
+            "sha256": "085c4e9e14fa61e223ffb865b9f82ae27b74e1afa76c28ca77c3e89349de0261",
+            "size_bytes": 404000
+          },
+          "hot_runs": [
+            {
+              "audio_duration_s": 12.497,
+              "blank_output": false,
+              "elapsed_s": 0.8662797920114826,
+              "mx_active_memory_bytes": 1661736526,
+              "mx_cache_memory_bytes": 1233601240,
+              "mx_peak_memory_bytes": 2507234014,
+              "rtf": 0.06931901992570078,
+              "transcript": "版本是 MLX 0 3 1 1 API endpoint 是 VE Audio Transcriptions ZFAC 2026 年 8 月 21 日"
+            },
+            {
+              "audio_duration_s": 12.497,
+              "blank_output": false,
+              "elapsed_s": 0.869626416999381,
+              "mx_active_memory_bytes": 1661736526,
+              "mx_cache_memory_bytes": 1233601240,
+              "mx_peak_memory_bytes": 2507234014,
+              "rtf": 0.06958681419535737,
+              "transcript": "版本是 MLX 0 3 1 1 API endpoint 是 VE Audio Transcriptions ZFAC 2026 年 8 月 21 日"
+            },
+            {
+              "audio_duration_s": 12.497,
+              "blank_output": false,
+              "elapsed_s": 0.8585961670032702,
+              "mx_active_memory_bytes": 1661736526,
+              "mx_cache_memory_bytes": 1233601240,
+              "mx_peak_memory_bytes": 2507234014,
+              "rtf": 0.06870418236402899,
+              "transcript": "版本是 MLX 0 3 1 1 API endpoint 是 VE Audio Transcriptions ZFAC 2026 年 8 月 21 日"
+            }
+          ],
+          "sample": {
+            "audio_filename": "terms_api_numbers.wav",
+            "category": "terms_api_numbers",
+            "id": "terms_api_numbers",
+            "notes": "Technical terms, API path, version, date, and numbers.",
+            "text": "版本是 MLX 0.31.1，API endpoint 是 /v1/audio/transcriptions，日期是 2026 年 8 月 21 日。"
+          },
+          "summary": {
+            "hot_blank_output_count": 0,
+            "hot_blank_output_rate": 0.0,
+            "hot_elapsed_median_s": 0.8662797920114826,
+            "hot_elapsed_p95_s": 0.8692917545005912,
+            "hot_rtf_median": 0.06931901992570078,
+            "hot_rtf_p95": 0.0695600347683917,
+            "hot_run_count": 3,
+            "hot_transcripts": [
+              "版本是 MLX 0 3 1 1 API endpoint 是 VE Audio Transcriptions ZFAC 2026 年 8 月 21 日",
+              "版本是 MLX 0 3 1 1 API endpoint 是 VE Audio Transcriptions ZFAC 2026 年 8 月 21 日",
+              "版本是 MLX 0 3 1 1 API endpoint 是 VE Audio Transcriptions ZFAC 2026 年 8 月 21 日"
+            ]
+          },
+          "warmup": {
+            "audio_duration_s": 12.497,
+            "blank_output": false,
+            "elapsed_s": 0.8803639160178136,
+            "mx_active_memory_bytes": 1661736526,
+            "mx_cache_memory_bytes": 1233601240,
+            "mx_peak_memory_bytes": 2507234014,
+            "rtf": 0.0704460203263034,
+            "transcript": "版本是 MLX 0 3 1 1 API endpoint 是 VE Audio Transcriptions ZFAC 2026 年 8 月 21 日"
+          }
+        },
+        {
+          "audio": {
+            "category": "longer_sentence",
+            "channels": 1,
+            "duration_s": 12.9305625,
+            "expected_text": "今天下午我們要在台北開一個 meeting，先確認 GitHub issue，再把 release candidate 部署到 staging，最後請同事用 iPhone 測試語音輸入。",
+            "frames": 206889,
+            "path": "/private/tmp/typelessmlx-breeze-quant-corpus-v1/longer_sentence.wav",
+            "sample_id": "longer_sentence",
+            "sample_rate_hz": 16000,
+            "sample_width_bytes": 2,
+            "sha256": "ec314b4f674da829ed0390fe523a7cc4fd0ff71b3763f8913da9bbd44b05e2a9",
+            "size_bytes": 417874
+          },
+          "hot_runs": [
+            {
+              "audio_duration_s": 12.9305625,
+              "blank_output": false,
+              "elapsed_s": 0.9521219999878667,
+              "mx_active_memory_bytes": 1661736526,
+              "mx_cache_memory_bytes": 1312244304,
+              "mx_peak_memory_bytes": 2507512542,
+              "rtf": 0.07363345562019183,
+              "transcript": "今天下午我們要在台北開一個 meeting先確認 GitHub issue再把 release candidate 部署到 staging最後請同事用 iPhone 測試語音輸入"
+            },
+            {
+              "audio_duration_s": 12.9305625,
+              "blank_output": false,
+              "elapsed_s": 0.9549610000103712,
+              "mx_active_memory_bytes": 1661736526,
+              "mx_cache_memory_bytes": 1312244304,
+              "mx_peak_memory_bytes": 2507512542,
+              "rtf": 0.07385301296910875,
+              "transcript": "今天下午我們要在台北開一個 meeting先確認 GitHub issue再把 release candidate 部署到 staging最後請同事用 iPhone 測試語音輸入"
+            },
+            {
+              "audio_duration_s": 12.9305625,
+              "blank_output": false,
+              "elapsed_s": 0.9580946670030244,
+              "mx_active_memory_bytes": 1661736526,
+              "mx_cache_memory_bytes": 1312244304,
+              "mx_peak_memory_bytes": 2507512542,
+              "rtf": 0.07409535872882748,
+              "transcript": "今天下午我們要在台北開一個 meeting先確認 GitHub issue再把 release candidate 部署到 staging最後請同事用 iPhone 測試語音輸入"
+            }
+          ],
+          "sample": {
+            "audio_filename": "longer_sentence.wav",
+            "category": "longer_sentence",
+            "id": "longer_sentence",
+            "notes": "Longer Taiwan Mandarin sentence with several English technical terms.",
+            "text": "今天下午我們要在台北開一個 meeting，先確認 GitHub issue，再把 release candidate 部署到 staging，最後請同事用 iPhone 測試語音輸入。"
+          },
+          "summary": {
+            "hot_blank_output_count": 0,
+            "hot_blank_output_rate": 0.0,
+            "hot_elapsed_median_s": 0.9549610000103712,
+            "hot_elapsed_p95_s": 0.9577813003037591,
+            "hot_rtf_median": 0.07385301296910875,
+            "hot_rtf_p95": 0.0740711241528556,
+            "hot_run_count": 3,
+            "hot_transcripts": [
+              "今天下午我們要在台北開一個 meeting先確認 GitHub issue再把 release candidate 部署到 staging最後請同事用 iPhone 測試語音輸入",
+              "今天下午我們要在台北開一個 meeting先確認 GitHub issue再把 release candidate 部署到 staging最後請同事用 iPhone 測試語音輸入",
+              "今天下午我們要在台北開一個 meeting先確認 GitHub issue再把 release candidate 部署到 staging最後請同事用 iPhone 測試語音輸入"
+            ]
+          },
+          "warmup": {
+            "audio_duration_s": 12.9305625,
+            "blank_output": false,
+            "elapsed_s": 0.9586800829856656,
+            "mx_active_memory_bytes": 1661736526,
+            "mx_cache_memory_bytes": 1312244304,
+            "mx_peak_memory_bytes": 2507512542,
+            "rtf": 0.07414063255064623,
+            "transcript": "今天下午我們要在台北開一個 meeting先確認 GitHub issue再把 release candidate 部署到 staging最後請同事用 iPhone 測試語音輸入"
+          }
+        }
+      ],
+      "schema_version": 1,
+      "worker_pid": 7034,
+      "worker_stderr": ""
+    },
+    {
+      "audio_dir": "/private/tmp/typelessmlx-breeze-quant-corpus-v1",
+      "cold": {
+        "first_inference": {
+          "audio_duration_s": 1.7036875,
+          "blank_output": false,
+          "elapsed_s": 0.7589677089999896,
+          "mx_active_memory_bytes": 1278137934,
+          "mx_cache_memory_bytes": 1090538488,
+          "mx_peak_memory_bytes": 2134998102,
+          "rtf": 0.44548528353937533,
+          "transcript": "今天天氣很好"
+        },
+        "first_inference_sample_id": "short_zh",
+        "load_plus_first_inference_s": 0.8351465840241872,
+        "model_load": {
+          "elapsed_s": 0.07617887502419762,
+          "mx_active_memory_bytes": 1273810960,
+          "mx_cache_memory_bytes": 16236,
+          "mx_peak_memory_bytes": 1273810960
+        }
+      },
+      "config": {
+        "condition_on_previous_text": true,
+        "fp16": true,
+        "initial_prompt": "這是台灣中文與 English 混合語音辨識，請保留 API、MLX、Whisper、GitHub、URL、數字與英文大小寫。",
+        "language": "zh",
+        "task": "transcribe",
+        "temperature": 0.0,
+        "verbose": null,
+        "without_timestamps": true
+      },
+      "config_name": "zh_fp16_greedy",
+      "config_sha256": "d22b1f70a9cb07871d937382b2c970bbce87c6346ec59e5847933550eba84a72",
+      "created_at_utc": "2026-08-21T01:40:32.392+00:00",
+      "driver_command": "/Users/schsu/.local/share/typelessmlx/venv/bin/python /Users/schsu/Downloads/google/typelessmlx/benchmarks/breeze_quant/benchmark_models.py --worker --model-path /Users/schsu/.local/share/typelessmlx/models/breeze-asr-25-mlx-6bit --model-label breeze-6bit --config-name zh_fp16_greedy --manifest /Users/schsu/Downloads/google/typelessmlx/benchmarks/breeze_quant/corpus_manifest.json --audio-dir /private/tmp/typelessmlx-breeze-quant-corpus-v1 --hot-runs 3 --sample-id short_zh --sample-id zh_start_mixed --sample-id english_start_mixed --sample-id terms_api_numbers --sample-id longer_sentence",
+      "harness_path": "/Users/schsu/Downloads/google/typelessmlx/benchmarks/breeze_quant/benchmark_models.py",
+      "harness_sha256": "4f83b726f8006d2588173eacc5f2701b423a1958c7b8a2ddc29643523f12483b",
+      "hot_runs_requested": 3,
+      "manifest_path": "/Users/schsu/Downloads/google/typelessmlx/benchmarks/breeze_quant/corpus_manifest.json",
+      "manifest_sha256": "7d4e3bbae5b03a627d4eaf2710aaa05026b11bfdeff008631f9e852ff6aeb161",
+      "model": {
+        "config": {
+          "model_type": "whisper",
+          "n_audio_ctx": 1500,
+          "n_audio_head": 20,
+          "n_audio_layer": 32,
+          "n_audio_state": 1280,
+          "n_mels": 80,
+          "n_text_ctx": 448,
+          "n_text_head": 20,
+          "n_text_layer": 32,
+          "n_text_state": 1280,
+          "n_vocab": 51865,
+          "quantization": {
+            "bits": 6,
+            "group_size": 64,
+            "mode": "affine"
+          }
+        },
+        "config_path": "/Users/schsu/.local/share/typelessmlx/models/breeze-asr-25-mlx-6bit/config.json",
+        "config_sha256": "3c34c17a2f4e5811e2bb1fcb7879d3b505be0fb35a6aae95b3130b9df4d0863b",
+        "files": {
+          "config.json": {
+            "sha256": "3c34c17a2f4e5811e2bb1fcb7879d3b505be0fb35a6aae95b3130b9df4d0863b",
+            "size_bytes": 368
+          },
+          "quantization_manifest.json": {
+            "sha256": "858dfdd37ff0ed5bd7a08c4b6d17a8f004738765c92bab6412d00092c9dbec21",
+            "size_bytes": 38796
+          },
+          "weights.safetensors": {
+            "sha256": "5e3c95bf219d9ac2ca42ccea2ea4a74e2c4dc69f8ac34596f408d628671e1aa7",
+            "size_bytes": 1260926004
+          }
+        },
+        "model_tree_sha256": "519fe9d89ce9dc989de1eda368c6cc010f4988802580b3a3e9a5b4a9737babf1",
+        "path": "/Users/schsu/.local/share/typelessmlx/models/breeze-asr-25-mlx-6bit",
+        "weights_path": "/Users/schsu/.local/share/typelessmlx/models/breeze-asr-25-mlx-6bit/weights.safetensors",
+        "weights_sha256": "5e3c95bf219d9ac2ca42ccea2ea4a74e2c4dc69f8ac34596f408d628671e1aa7",
+        "weights_size_bytes": 1260926004
+      },
+      "model_label": "breeze-6bit",
+      "result_type": "mlx_whisper_worker_result",
+      "runtime": {
+        "machine": "arm64",
+        "macos_version": "27.0",
+        "mlx_version": "0.31.1",
+        "mlx_whisper_version": "0.4.3",
+        "numpy_version": "2.4.3",
+        "platform": "macOS-27.0-arm64-arm-64bit",
+        "processor": "arm",
+        "python": "3.12.11 (main, Aug 18 2025, 19:02:39) [Clang 20.1.4 ]",
+        "python_executable": "/Users/schsu/.local/share/typelessmlx/venv/bin/python",
+        "release": "27.0.0",
+        "system": "Darwin"
+      },
+      "samples": [
+        {
+          "audio": {
+            "category": "short_zh",
+            "channels": 1,
+            "duration_s": 1.7036875,
+            "expected_text": "今天天氣很好。",
+            "frames": 27259,
+            "path": "/private/tmp/typelessmlx-breeze-quant-corpus-v1/short_zh.wav",
+            "sample_id": "short_zh",
+            "sample_rate_hz": 16000,
+            "sample_width_bytes": 2,
+            "sha256": "5f64e3a82aa02a471b9d25986634281aa32e9ec7c95303b742a7ac22e8c6192f",
+            "size_bytes": 58614
+          },
+          "cold_first_inference": {
+            "audio_duration_s": 1.7036875,
+            "blank_output": false,
+            "elapsed_s": 0.7589677089999896,
+            "mx_active_memory_bytes": 1278137934,
+            "mx_cache_memory_bytes": 1090538488,
+            "mx_peak_memory_bytes": 2134998102,
+            "rtf": 0.44548528353937533,
+            "transcript": "今天天氣很好"
+          },
+          "hot_runs": [
+            {
+              "audio_duration_s": 1.7036875,
+              "blank_output": false,
+              "elapsed_s": 0.6334490420122165,
+              "mx_active_memory_bytes": 1278137934,
+              "mx_cache_memory_bytes": 1090538952,
+              "mx_peak_memory_bytes": 2116164318,
+              "rtf": 0.3718105826404294,
+              "transcript": "今天天氣很好"
+            },
+            {
+              "audio_duration_s": 1.7036875,
+              "blank_output": false,
+              "elapsed_s": 0.6343717080017086,
+              "mx_active_memory_bytes": 1278137934,
+              "mx_cache_memory_bytes": 1090538952,
+              "mx_peak_memory_bytes": 2116164318,
+              "rtf": 0.37235215261115,
+              "transcript": "今天天氣很好"
+            },
+            {
+              "audio_duration_s": 1.7036875,
+              "blank_output": false,
+              "elapsed_s": 0.6462820000015199,
+              "mx_active_memory_bytes": 1278137934,
+              "mx_cache_memory_bytes": 1090538952,
+              "mx_peak_memory_bytes": 2116164318,
+              "rtf": 0.37934304266570007,
+              "transcript": "今天天氣很好"
+            }
+          ],
+          "sample": {
+            "audio_filename": "short_zh.wav",
+            "category": "short_zh",
+            "id": "short_zh",
+            "notes": "Short Taiwan Mandarin baseline.",
+            "text": "今天天氣很好。"
+          },
+          "summary": {
+            "hot_blank_output_count": 0,
+            "hot_blank_output_rate": 0.0,
+            "hot_elapsed_median_s": 0.6343717080017086,
+            "hot_elapsed_p95_s": 0.6450909708015388,
+            "hot_rtf_median": 0.37235215261115,
+            "hot_rtf_p95": 0.37864395366024506,
+            "hot_run_count": 3,
+            "hot_transcripts": [
+              "今天天氣很好",
+              "今天天氣很好",
+              "今天天氣很好"
+            ]
+          },
+          "warmup": {
+            "audio_duration_s": 1.7036875,
+            "blank_output": false,
+            "elapsed_s": 0.6397235000040382,
+            "mx_active_memory_bytes": 1278137934,
+            "mx_cache_memory_bytes": 1090538952,
+            "mx_peak_memory_bytes": 2116164318,
+            "rtf": 0.37549345170639464,
+            "transcript": "今天天氣很好"
+          }
+        },
+        {
+          "audio": {
+            "category": "zh_start_mixed",
+            "channels": 1,
+            "duration_s": 5.5001875,
+            "expected_text": "請幫我開啟 Python API，然後呼叫 Whisper model。",
+            "frames": 88003,
+            "path": "/private/tmp/typelessmlx-breeze-quant-corpus-v1/zh_start_mixed.wav",
+            "sample_id": "zh_start_mixed",
+            "sample_rate_hz": 16000,
+            "sample_width_bytes": 2,
+            "sha256": "a74e5dfd3d01fa8c8bfa8dcae7a6efae9936d8226bf483fd090f0bd18f41545d",
+            "size_bytes": 180102
+          },
+          "hot_runs": [
+            {
+              "audio_duration_s": 5.5001875,
+              "blank_output": false,
+              "elapsed_s": 0.7284482909890357,
+              "mx_active_memory_bytes": 1278137934,
+              "mx_cache_memory_bytes": 1149480472,
+              "mx_peak_memory_bytes": 2118802142,
+              "rtf": 0.13244062879475213,
+              "transcript": "請幫我開啟 Python API 然後呼叫 Whisper model"
+            },
+            {
+              "audio_duration_s": 5.5001875,
+              "blank_output": false,
+              "elapsed_s": 0.7269499170070048,
+              "mx_active_memory_bytes": 1278137934,
+              "mx_cache_memory_bytes": 1149480472,
+              "mx_peak_memory_bytes": 2118802142,
+              "rtf": 0.13216820644878102,
+              "transcript": "請幫我開啟 Python API 然後呼叫 Whisper model"
+            },
+            {
+              "audio_duration_s": 5.5001875,
+              "blank_output": false,
+              "elapsed_s": 0.7307540830224752,
+              "mx_active_memory_bytes": 1278137934,
+              "mx_cache_memory_bytes": 1149480472,
+              "mx_peak_memory_bytes": 2118802142,
+              "rtf": 0.13285984941831078,
+              "transcript": "請幫我開啟 Python API 然後呼叫 Whisper model"
+            }
+          ],
+          "sample": {
+            "audio_filename": "zh_start_mixed.wav",
+            "category": "zh_start_mixed",
+            "id": "zh_start_mixed",
+            "notes": "Chinese-start code-switch with product and programming terms.",
+            "text": "請幫我開啟 Python API，然後呼叫 Whisper model。"
+          },
+          "summary": {
+            "hot_blank_output_count": 0,
+            "hot_blank_output_rate": 0.0,
+            "hot_elapsed_median_s": 0.7284482909890357,
+            "hot_elapsed_p95_s": 0.7305235038191313,
+            "hot_rtf_median": 0.13244062879475213,
+            "hot_rtf_p95": 0.1328179273559549,
+            "hot_run_count": 3,
+            "hot_transcripts": [
+              "請幫我開啟 Python API 然後呼叫 Whisper model",
+              "請幫我開啟 Python API 然後呼叫 Whisper model",
+              "請幫我開啟 Python API 然後呼叫 Whisper model"
+            ]
+          },
+          "warmup": {
+            "audio_duration_s": 5.5001875,
+            "blank_output": false,
+            "elapsed_s": 0.725445292016957,
+            "mx_active_memory_bytes": 1278137934,
+            "mx_cache_memory_bytes": 1149480472,
+            "mx_peak_memory_bytes": 2118802142,
+            "rtf": 0.13189464759464237,
+            "transcript": "請幫我開啟 Python API 然後呼叫 Whisper model"
+          }
+        },
+        {
+          "audio": {
+            "category": "english_start_mixed",
+            "channels": 1,
+            "duration_s": 3.680375,
+            "expected_text": "Please open 設定，切換到快速模式。",
+            "frames": 58886,
+            "path": "/private/tmp/typelessmlx-breeze-quant-corpus-v1/english_start_mixed.wav",
+            "sample_id": "english_start_mixed",
+            "sample_rate_hz": 16000,
+            "sample_width_bytes": 2,
+            "sha256": "740c8a3ed36b64ddb2b5bdc5b0be35a1198f00452e6eca4d96fd537443c7d00a",
+            "size_bytes": 121868
+          },
+          "hot_runs": [
+            {
+              "audio_duration_s": 3.680375,
+              "blank_output": false,
+              "elapsed_s": 0.7218655409815256,
+              "mx_active_memory_bytes": 1278137934,
+              "mx_cache_memory_bytes": 1164357144,
+              "mx_peak_memory_bytes": 2117573342,
+              "rtf": 0.19613912739368286,
+              "transcript": "Please open 設定 切換到快速模式"
+            },
+            {
+              "audio_duration_s": 3.680375,
+              "blank_output": false,
+              "elapsed_s": 0.7267989579995628,
+              "mx_active_memory_bytes": 1278137934,
+              "mx_cache_memory_bytes": 1164357144,
+              "mx_peak_memory_bytes": 2117573342,
+              "rtf": 0.19747959324785186,
+              "transcript": "Please open 設定 切換到快速模式"
+            },
+            {
+              "audio_duration_s": 3.680375,
+              "blank_output": false,
+              "elapsed_s": 0.7122740840131883,
+              "mx_active_memory_bytes": 1278137934,
+              "mx_cache_memory_bytes": 1164357144,
+              "mx_peak_memory_bytes": 2117573342,
+              "rtf": 0.19353301878563686,
+              "transcript": "Please open 設定 切換到快速模式"
+            }
+          ],
+          "sample": {
+            "audio_filename": "english_start_mixed.wav",
+            "category": "english_start_mixed",
+            "id": "english_start_mixed",
+            "notes": "English-start code-switch with a Taiwan Mandarin UI phrase.",
+            "text": "Please open 設定，切換到快速模式。"
+          },
+          "summary": {
+            "hot_blank_output_count": 0,
+            "hot_blank_output_rate": 0.0,
+            "hot_elapsed_median_s": 0.7218655409815256,
+            "hot_elapsed_p95_s": 0.7263056162977591,
+            "hot_rtf_median": 0.19613912739368286,
+            "hot_rtf_p95": 0.19734554666243495,
+            "hot_run_count": 3,
+            "hot_transcripts": [
+              "Please open 設定 切換到快速模式",
+              "Please open 設定 切換到快速模式",
+              "Please open 設定 切換到快速模式"
+            ]
+          },
+          "warmup": {
+            "audio_duration_s": 3.680375,
+            "blank_output": false,
+            "elapsed_s": 0.7222076249890961,
+            "mx_active_memory_bytes": 1278137934,
+            "mx_cache_memory_bytes": 1164357144,
+            "mx_peak_memory_bytes": 2117573342,
+            "rtf": 0.19623207553281827,
+            "transcript": "Please open 設定 切換到快速模式"
+          }
+        },
+        {
+          "audio": {
+            "category": "terms_api_numbers",
+            "channels": 1,
+            "duration_s": 12.497,
+            "expected_text": "版本是 MLX 0.31.1，API endpoint 是 /v1/audio/transcriptions，日期是 2026 年 8 月 21 日。",
+            "frames": 199952,
+            "path": "/private/tmp/typelessmlx-breeze-quant-corpus-v1/terms_api_numbers.wav",
+            "sample_id": "terms_api_numbers",
+            "sample_rate_hz": 16000,
+            "sample_width_bytes": 2,
+            "sha256": "085c4e9e14fa61e223ffb865b9f82ae27b74e1afa76c28ca77c3e89349de0261",
+            "size_bytes": 404000
+          },
+          "hot_runs": [
+            {
+              "audio_duration_s": 12.497,
+              "blank_output": false,
+              "elapsed_s": 0.8495578339789063,
+              "mx_active_memory_bytes": 1278137934,
+              "mx_cache_memory_bytes": 1233584856,
+              "mx_peak_memory_bytes": 2123635422,
+              "rtf": 0.06798094214442717,
+              "transcript": "版本是 MLX 0 3 1 1 API endpoint 是 VE Audio Transcriptions ZFAC 2026 年 8 月 21 日"
+            },
+            {
+              "audio_duration_s": 12.497,
+              "blank_output": false,
+              "elapsed_s": 0.8739490000007208,
+              "mx_active_memory_bytes": 1278137934,
+              "mx_cache_memory_bytes": 1233584856,
+              "mx_peak_memory_bytes": 2123635422,
+              "rtf": 0.06993270384898143,
+              "transcript": "版本是 MLX 0 3 1 1 API endpoint 是 VE Audio Transcriptions ZFAC 2026 年 8 月 21 日"
+            },
+            {
+              "audio_duration_s": 12.497,
+              "blank_output": false,
+              "elapsed_s": 0.9776509999937844,
+              "mx_active_memory_bytes": 1278137934,
+              "mx_cache_memory_bytes": 1233584856,
+              "mx_peak_memory_bytes": 2123635422,
+              "rtf": 0.0782308554047999,
+              "transcript": "版本是 MLX 0 3 1 1 API endpoint 是 VE Audio Transcriptions ZFAC 2026 年 8 月 21 日"
+            }
+          ],
+          "sample": {
+            "audio_filename": "terms_api_numbers.wav",
+            "category": "terms_api_numbers",
+            "id": "terms_api_numbers",
+            "notes": "Technical terms, API path, version, date, and numbers.",
+            "text": "版本是 MLX 0.31.1，API endpoint 是 /v1/audio/transcriptions，日期是 2026 年 8 月 21 日。"
+          },
+          "summary": {
+            "hot_blank_output_count": 0,
+            "hot_blank_output_rate": 0.0,
+            "hot_elapsed_median_s": 0.8739490000007208,
+            "hot_elapsed_p95_s": 0.967280799994478,
+            "hot_rtf_median": 0.06993270384898143,
+            "hot_rtf_p95": 0.07740104024921805,
+            "hot_run_count": 3,
+            "hot_transcripts": [
+              "版本是 MLX 0 3 1 1 API endpoint 是 VE Audio Transcriptions ZFAC 2026 年 8 月 21 日",
+              "版本是 MLX 0 3 1 1 API endpoint 是 VE Audio Transcriptions ZFAC 2026 年 8 月 21 日",
+              "版本是 MLX 0 3 1 1 API endpoint 是 VE Audio Transcriptions ZFAC 2026 年 8 月 21 日"
+            ]
+          },
+          "warmup": {
+            "audio_duration_s": 12.497,
+            "blank_output": false,
+            "elapsed_s": 0.8490968749974854,
+            "mx_active_memory_bytes": 1278137934,
+            "mx_cache_memory_bytes": 1233584856,
+            "mx_peak_memory_bytes": 2123635422,
+            "rtf": 0.06794405657337645,
+            "transcript": "版本是 MLX 0 3 1 1 API endpoint 是 VE Audio Transcriptions ZFAC 2026 年 8 月 21 日"
+          }
+        },
+        {
+          "audio": {
+            "category": "longer_sentence",
+            "channels": 1,
+            "duration_s": 12.9305625,
+            "expected_text": "今天下午我們要在台北開一個 meeting，先確認 GitHub issue，再把 release candidate 部署到 staging，最後請同事用 iPhone 測試語音輸入。",
+            "frames": 206889,
+            "path": "/private/tmp/typelessmlx-breeze-quant-corpus-v1/longer_sentence.wav",
+            "sample_id": "longer_sentence",
+            "sample_rate_hz": 16000,
+            "sample_width_bytes": 2,
+            "sha256": "ec314b4f674da829ed0390fe523a7cc4fd0ff71b3763f8913da9bbd44b05e2a9",
+            "size_bytes": 417874
+          },
+          "hot_runs": [
+            {
+              "audio_duration_s": 12.9305625,
+              "blank_output": false,
+              "elapsed_s": 0.9351884159841575,
+              "mx_active_memory_bytes": 1278137934,
+              "mx_cache_memory_bytes": 1312227920,
+              "mx_peak_memory_bytes": 2123913950,
+              "rtf": 0.07232387732429718,
+              "transcript": "今天下午我們要在台北開一個 meeting先確認 GitHub issue再把 release candidate 部署到 staging最後請同事用 iPhone 測試語音輸入"
+            },
+            {
+              "audio_duration_s": 12.9305625,
+              "blank_output": false,
+              "elapsed_s": 0.9315800000040326,
+              "mx_active_memory_bytes": 1278137934,
+              "mx_cache_memory_bytes": 1312227920,
+              "mx_peak_memory_bytes": 2123913950,
+              "rtf": 0.07204481630277357,
+              "transcript": "今天下午我們要在台北開一個 meeting先確認 GitHub issue再把 release candidate 部署到 staging最後請同事用 iPhone 測試語音輸入"
+            },
+            {
+              "audio_duration_s": 12.9305625,
+              "blank_output": false,
+              "elapsed_s": 0.9361814160074573,
+              "mx_active_memory_bytes": 1278137934,
+              "mx_cache_memory_bytes": 1312227920,
+              "mx_peak_memory_bytes": 2123913950,
+              "rtf": 0.0724006721291094,
+              "transcript": "今天下午我們要在台北開一個 meeting先確認 GitHub issue再把 release candidate 部署到 staging最後請同事用 iPhone 測試語音輸入"
+            }
+          ],
+          "sample": {
+            "audio_filename": "longer_sentence.wav",
+            "category": "longer_sentence",
+            "id": "longer_sentence",
+            "notes": "Longer Taiwan Mandarin sentence with several English technical terms.",
+            "text": "今天下午我們要在台北開一個 meeting，先確認 GitHub issue，再把 release candidate 部署到 staging，最後請同事用 iPhone 測試語音輸入。"
+          },
+          "summary": {
+            "hot_blank_output_count": 0,
+            "hot_blank_output_rate": 0.0,
+            "hot_elapsed_median_s": 0.9351884159841575,
+            "hot_elapsed_p95_s": 0.9360821160051274,
+            "hot_rtf_median": 0.07232387732429718,
+            "hot_rtf_p95": 0.07239299264862818,
+            "hot_run_count": 3,
+            "hot_transcripts": [
+              "今天下午我們要在台北開一個 meeting先確認 GitHub issue再把 release candidate 部署到 staging最後請同事用 iPhone 測試語音輸入",
+              "今天下午我們要在台北開一個 meeting先確認 GitHub issue再把 release candidate 部署到 staging最後請同事用 iPhone 測試語音輸入",
+              "今天下午我們要在台北開一個 meeting先確認 GitHub issue再把 release candidate 部署到 staging最後請同事用 iPhone 測試語音輸入"
+            ]
+          },
+          "warmup": {
+            "audio_duration_s": 12.9305625,
+            "blank_output": false,
+            "elapsed_s": 0.937500915984856,
+            "mx_active_memory_bytes": 1278137934,
+            "mx_cache_memory_bytes": 1312227920,
+            "mx_peak_memory_bytes": 2123913950,
+            "rtf": 0.07250271718533946,
+            "transcript": "今天下午我們要在台北開一個 meeting先確認 GitHub issue再把 release candidate 部署到 staging最後請同事用 iPhone 測試語音輸入"
+          }
+        }
+      ],
+      "schema_version": 1,
+      "worker_pid": 7066,
+      "worker_stderr": ""
+    },
+    {
+      "audio_dir": "/private/tmp/typelessmlx-breeze-quant-corpus-v1",
+      "cold": {
+        "first_inference": {
+          "audio_duration_s": 1.7036875,
+          "blank_output": false,
+          "elapsed_s": 0.7698583330202382,
+          "mx_active_memory_bytes": 2344719950,
+          "mx_cache_memory_bytes": 1165850016,
+          "mx_peak_memory_bytes": 3201580118,
+          "rtf": 0.4518776671309957,
+          "transcript": "今天天氣很好"
+        },
+        "first_inference_sample_id": "short_zh",
+        "load_plus_first_inference_s": 0.9829328750201967,
+        "model_load": {
+          "elapsed_s": 0.21307454199995846,
+          "mx_active_memory_bytes": 2340392976,
+          "mx_cache_memory_bytes": 16228,
+          "mx_peak_memory_bytes": 2340392976
+        }
+      },
+      "config": {
+        "condition_on_previous_text": true,
+        "fp16": true,
+        "initial_prompt": "這是台灣中文與 English 混合語音辨識，請保留 API、MLX、Whisper、GitHub、URL、數字與英文大小寫。",
+        "language": "zh",
+        "task": "transcribe",
+        "temperature": 0.0,
+        "verbose": null,
+        "without_timestamps": true
+      },
+      "config_name": "zh_fp16_greedy",
+      "config_sha256": "d22b1f70a9cb07871d937382b2c970bbce87c6346ec59e5847933550eba84a72",
+      "created_at_utc": "2026-08-21T01:40:52.178+00:00",
+      "driver_command": "/Users/schsu/.local/share/typelessmlx/venv/bin/python /Users/schsu/Downloads/google/typelessmlx/benchmarks/breeze_quant/benchmark_models.py --worker --model-path /Users/schsu/.local/share/typelessmlx/models/breeze-asr-25-mlx-hybrid --model-label breeze-hybrid --config-name zh_fp16_greedy --manifest /Users/schsu/Downloads/google/typelessmlx/benchmarks/breeze_quant/corpus_manifest.json --audio-dir /private/tmp/typelessmlx-breeze-quant-corpus-v1 --hot-runs 3 --sample-id short_zh --sample-id zh_start_mixed --sample-id english_start_mixed --sample-id terms_api_numbers --sample-id longer_sentence",
+      "harness_path": "/Users/schsu/Downloads/google/typelessmlx/benchmarks/breeze_quant/benchmark_models.py",
+      "harness_sha256": "4f83b726f8006d2588173eacc5f2701b423a1958c7b8a2ddc29643523f12483b",
+      "hot_runs_requested": 3,
+      "manifest_path": "/Users/schsu/Downloads/google/typelessmlx/benchmarks/breeze_quant/corpus_manifest.json",
+      "manifest_sha256": "7d4e3bbae5b03a627d4eaf2710aaa05026b11bfdeff008631f9e852ff6aeb161",
+      "model": {
+        "config": {
+          "model_type": "whisper",
+          "n_audio_ctx": 1500,
+          "n_audio_head": 20,
+          "n_audio_layer": 32,
+          "n_audio_state": 1280,
+          "n_mels": 80,
+          "n_text_ctx": 448,
+          "n_text_head": 20,
+          "n_text_layer": 32,
+          "n_text_state": 1280,
+          "n_vocab": 51865,
+          "quantization": {
+            "bits": 6,
+            "group_size": 64,
+            "mode": "affine"
+          }
+        },
+        "config_path": "/Users/schsu/.local/share/typelessmlx/models/breeze-asr-25-mlx-hybrid/config.json",
+        "config_sha256": "3c34c17a2f4e5811e2bb1fcb7879d3b505be0fb35a6aae95b3130b9df4d0863b",
+        "files": {
+          "config.json": {
+            "sha256": "3c34c17a2f4e5811e2bb1fcb7879d3b505be0fb35a6aae95b3130b9df4d0863b",
+            "size_bytes": 368
+          },
+          "quantization_manifest.json": {
+            "sha256": "ed51f4a39073a35413a9c71362301ae494cdbe75a17adda872aed1d92b90ca56",
+            "size_bytes": 15025
+          },
+          "weights.safetensors": {
+            "sha256": "743763e02cdf2f46f8772784b5f5809f35bfc183432277aab92ee38fdc131b74",
+            "size_bytes": 2335840047
+          }
+        },
+        "model_tree_sha256": "a6301ca3ed524cd59e19dc2b742c880eb0735e5043780a97617732a544e588bc",
+        "path": "/Users/schsu/.local/share/typelessmlx/models/breeze-asr-25-mlx-hybrid",
+        "weights_path": "/Users/schsu/.local/share/typelessmlx/models/breeze-asr-25-mlx-hybrid/weights.safetensors",
+        "weights_sha256": "743763e02cdf2f46f8772784b5f5809f35bfc183432277aab92ee38fdc131b74",
+        "weights_size_bytes": 2335840047
+      },
+      "model_label": "breeze-hybrid",
+      "result_type": "mlx_whisper_worker_result",
+      "runtime": {
+        "machine": "arm64",
+        "macos_version": "27.0",
+        "mlx_version": "0.31.1",
+        "mlx_whisper_version": "0.4.3",
+        "numpy_version": "2.4.3",
+        "platform": "macOS-27.0-arm64-arm-64bit",
+        "processor": "arm",
+        "python": "3.12.11 (main, Aug 18 2025, 19:02:39) [Clang 20.1.4 ]",
+        "python_executable": "/Users/schsu/.local/share/typelessmlx/venv/bin/python",
+        "release": "27.0.0",
+        "system": "Darwin"
+      },
+      "samples": [
+        {
+          "audio": {
+            "category": "short_zh",
+            "channels": 1,
+            "duration_s": 1.7036875,
+            "expected_text": "今天天氣很好。",
+            "frames": 27259,
+            "path": "/private/tmp/typelessmlx-breeze-quant-corpus-v1/short_zh.wav",
+            "sample_id": "short_zh",
+            "sample_rate_hz": 16000,
+            "sample_width_bytes": 2,
+            "sha256": "5f64e3a82aa02a471b9d25986634281aa32e9ec7c95303b742a7ac22e8c6192f",
+            "size_bytes": 58614
+          },
+          "cold_first_inference": {
+            "audio_duration_s": 1.7036875,
+            "blank_output": false,
+            "elapsed_s": 0.7698583330202382,
+            "mx_active_memory_bytes": 2344719950,
+            "mx_cache_memory_bytes": 1165850016,
+            "mx_peak_memory_bytes": 3201580118,
+            "rtf": 0.4518776671309957,
+            "transcript": "今天天氣很好"
+          },
+          "hot_runs": [
+            {
+              "audio_duration_s": 1.7036875,
+              "blank_output": false,
+              "elapsed_s": 0.6466832080041058,
+              "mx_active_memory_bytes": 2344719950,
+              "mx_cache_memory_bytes": 1166292848,
+              "mx_peak_memory_bytes": 3182746334,
+              "rtf": 0.37957853655914353,
+              "transcript": "今天天氣很好"
+            },
+            {
+              "audio_duration_s": 1.7036875,
+              "blank_output": false,
+              "elapsed_s": 0.6437280410027597,
+              "mx_active_memory_bytes": 2344719950,
+              "mx_cache_memory_bytes": 1166292848,
+              "mx_peak_memory_bytes": 3182746334,
+              "rtf": 0.3778439655175962,
+              "transcript": "今天天氣很好"
+            },
+            {
+              "audio_duration_s": 1.7036875,
+              "blank_output": false,
+              "elapsed_s": 0.6492159590125084,
+              "mx_active_memory_bytes": 2344719950,
+              "mx_cache_memory_bytes": 1166292848,
+              "mx_peak_memory_bytes": 3182746334,
+              "rtf": 0.3810651654205999,
+              "transcript": "今天天氣很好"
+            }
+          ],
+          "sample": {
+            "audio_filename": "short_zh.wav",
+            "category": "short_zh",
+            "id": "short_zh",
+            "notes": "Short Taiwan Mandarin baseline.",
+            "text": "今天天氣很好。"
+          },
+          "summary": {
+            "hot_blank_output_count": 0,
+            "hot_blank_output_rate": 0.0,
+            "hot_elapsed_median_s": 0.6466832080041058,
+            "hot_elapsed_p95_s": 0.6489626839116681,
+            "hot_rtf_median": 0.37957853655914353,
+            "hot_rtf_p95": 0.3809165025344543,
+            "hot_run_count": 3,
+            "hot_transcripts": [
+              "今天天氣很好",
+              "今天天氣很好",
+              "今天天氣很好"
+            ]
+          },
+          "warmup": {
+            "audio_duration_s": 1.7036875,
+            "blank_output": false,
+            "elapsed_s": 0.6604225419869181,
+            "mx_active_memory_bytes": 2344719950,
+            "mx_cache_memory_bytes": 1166292848,
+            "mx_peak_memory_bytes": 3182746334,
+            "rtf": 0.38764300494481413,
+            "transcript": "今天天氣很好"
+          }
+        },
+        {
+          "audio": {
+            "category": "zh_start_mixed",
+            "channels": 1,
+            "duration_s": 5.5001875,
+            "expected_text": "請幫我開啟 Python API，然後呼叫 Whisper model。",
+            "frames": 88003,
+            "path": "/private/tmp/typelessmlx-breeze-quant-corpus-v1/zh_start_mixed.wav",
+            "sample_id": "zh_start_mixed",
+            "sample_rate_hz": 16000,
+            "sample_width_bytes": 2,
+            "sha256": "a74e5dfd3d01fa8c8bfa8dcae7a6efae9936d8226bf483fd090f0bd18f41545d",
+            "size_bytes": 180102
+          },
+          "hot_runs": [
+            {
+              "audio_duration_s": 5.5001875,
+              "blank_output": false,
+              "elapsed_s": 0.7910752079915255,
+              "mx_active_memory_bytes": 2344719950,
+              "mx_cache_memory_bytes": 1228354704,
+              "mx_peak_memory_bytes": 3185384158,
+              "rtf": 0.14382695280688623,
+              "transcript": "請幫我開啟 Python API 然後呼叫 Whisper model"
+            },
+            {
+              "audio_duration_s": 5.5001875,
+              "blank_output": false,
+              "elapsed_s": 0.7843571249977686,
+              "mx_active_memory_bytes": 2344719950,
+              "mx_cache_memory_bytes": 1228354704,
+              "mx_peak_memory_bytes": 3185384158,
+              "rtf": 0.14260552481124844,
+              "transcript": "請幫我開啟 Python API 然後呼叫 Whisper model"
+            },
+            {
+              "audio_duration_s": 5.5001875,
+              "blank_output": false,
+              "elapsed_s": 0.7827707499964163,
+              "mx_active_memory_bytes": 2344719950,
+              "mx_cache_memory_bytes": 1228354704,
+              "mx_peak_memory_bytes": 3185384158,
+              "rtf": 0.14231710282538845,
+              "transcript": "請幫我開啟 Python API 然後呼叫 Whisper model"
+            }
+          ],
+          "sample": {
+            "audio_filename": "zh_start_mixed.wav",
+            "category": "zh_start_mixed",
+            "id": "zh_start_mixed",
+            "notes": "Chinese-start code-switch with product and programming terms.",
+            "text": "請幫我開啟 Python API，然後呼叫 Whisper model。"
+          },
+          "summary": {
+            "hot_blank_output_count": 0,
+            "hot_blank_output_rate": 0.0,
+            "hot_elapsed_median_s": 0.7843571249977686,
+            "hot_elapsed_p95_s": 0.7904033996921498,
+            "hot_rtf_median": 0.14260552481124844,
+            "hot_rtf_p95": 0.14370481000732246,
+            "hot_run_count": 3,
+            "hot_transcripts": [
+              "請幫我開啟 Python API 然後呼叫 Whisper model",
+              "請幫我開啟 Python API 然後呼叫 Whisper model",
+              "請幫我開啟 Python API 然後呼叫 Whisper model"
+            ]
+          },
+          "warmup": {
+            "audio_duration_s": 5.5001875,
+            "blank_output": false,
+            "elapsed_s": 0.7660909999976866,
+            "mx_active_memory_bytes": 2344719950,
+            "mx_cache_memory_bytes": 1228354704,
+            "mx_peak_memory_bytes": 3185384158,
+            "rtf": 0.13928452439079334,
+            "transcript": "請幫我開啟 Python API 然後呼叫 Whisper model"
+          }
+        },
+        {
+          "audio": {
+            "category": "english_start_mixed",
+            "channels": 1,
+            "duration_s": 3.680375,
+            "expected_text": "Please open 設定，切換到快速模式。",
+            "frames": 58886,
+            "path": "/private/tmp/typelessmlx-breeze-quant-corpus-v1/english_start_mixed.wav",
+            "sample_id": "english_start_mixed",
+            "sample_rate_hz": 16000,
+            "sample_width_bytes": 2,
+            "sha256": "740c8a3ed36b64ddb2b5bdc5b0be35a1198f00452e6eca4d96fd537443c7d00a",
+            "size_bytes": 121868
+          },
+          "hot_runs": [
+            {
+              "audio_duration_s": 3.680375,
+              "blank_output": false,
+              "elapsed_s": 0.7743865830125287,
+              "mx_active_memory_bytes": 2344719950,
+              "mx_cache_memory_bytes": 1243231376,
+              "mx_peak_memory_bytes": 3184155358,
+              "rtf": 0.21040969548280505,
+              "transcript": "Please open 設定 切換到快速模式"
+            },
+            {
+              "audio_duration_s": 3.680375,
+              "blank_output": false,
+              "elapsed_s": 0.7643306250101887,
+              "mx_active_memory_bytes": 2344719950,
+              "mx_cache_memory_bytes": 1243231376,
+              "mx_peak_memory_bytes": 3184155358,
+              "rtf": 0.20767737662879154,
+              "transcript": "Please open 設定 切換到快速模式"
+            },
+            {
+              "audio_duration_s": 3.680375,
+              "blank_output": false,
+              "elapsed_s": 0.7568426250072662,
+              "mx_active_memory_bytes": 2344719950,
+              "mx_cache_memory_bytes": 1243231376,
+              "mx_peak_memory_bytes": 3184155358,
+              "rtf": 0.20564280134694593,
+              "transcript": "Please open 設定 切換到快速模式"
+            }
+          ],
+          "sample": {
+            "audio_filename": "english_start_mixed.wav",
+            "category": "english_start_mixed",
+            "id": "english_start_mixed",
+            "notes": "English-start code-switch with a Taiwan Mandarin UI phrase.",
+            "text": "Please open 設定，切換到快速模式。"
+          },
+          "summary": {
+            "hot_blank_output_count": 0,
+            "hot_blank_output_rate": 0.0,
+            "hot_elapsed_median_s": 0.7643306250101887,
+            "hot_elapsed_p95_s": 0.7733809872122948,
+            "hot_rtf_median": 0.20767737662879154,
+            "hot_rtf_p95": 0.2101364635974037,
+            "hot_run_count": 3,
+            "hot_transcripts": [
+              "Please open 設定 切換到快速模式",
+              "Please open 設定 切換到快速模式",
+              "Please open 設定 切換到快速模式"
+            ]
+          },
+          "warmup": {
+            "audio_duration_s": 3.680375,
+            "blank_output": false,
+            "elapsed_s": 0.7732548339990899,
+            "mx_active_memory_bytes": 2344719950,
+            "mx_cache_memory_bytes": 1243231376,
+            "mx_peak_memory_bytes": 3184155358,
+            "rtf": 0.21010218632587435,
+            "transcript": "Please open 設定 切換到快速模式"
+          }
+        },
+        {
+          "audio": {
+            "category": "terms_api_numbers",
+            "channels": 1,
+            "duration_s": 12.497,
+            "expected_text": "版本是 MLX 0.31.1，API endpoint 是 /v1/audio/transcriptions，日期是 2026 年 8 月 21 日。",
+            "frames": 199952,
+            "path": "/private/tmp/typelessmlx-breeze-quant-corpus-v1/terms_api_numbers.wav",
+            "sample_id": "terms_api_numbers",
+            "sample_rate_hz": 16000,
+            "sample_width_bytes": 2,
+            "sha256": "085c4e9e14fa61e223ffb865b9f82ae27b74e1afa76c28ca77c3e89349de0261",
+            "size_bytes": 404000
+          },
+          "hot_runs": [
+            {
+              "audio_duration_s": 12.497,
+              "blank_output": false,
+              "elapsed_s": 0.9543490000069141,
+              "mx_active_memory_bytes": 2344719950,
+              "mx_cache_memory_bytes": 1316245968,
+              "mx_peak_memory_bytes": 3190217438,
+              "rtf": 0.07636624790004914,
+              "transcript": "版本是 MLX 0 3 1 1 API endpoint 是 VE Audio Transcriptions ZFAC 2026 年 8 月 21 日"
+            },
+            {
+              "audio_duration_s": 12.497,
+              "blank_output": false,
+              "elapsed_s": 0.9487131250207312,
+              "mx_active_memory_bytes": 2344719950,
+              "mx_cache_memory_bytes": 1316245968,
+              "mx_peak_memory_bytes": 3190217438,
+              "rtf": 0.07591526966637843,
+              "transcript": "版本是 MLX 0 3 1 1 API endpoint 是 VE Audio Transcriptions ZFAC 2026 年 8 月 21 日"
+            },
+            {
+              "audio_duration_s": 12.497,
+              "blank_output": false,
+              "elapsed_s": 0.950144791015191,
+              "mx_active_memory_bytes": 2344719950,
+              "mx_cache_memory_bytes": 1316245968,
+              "mx_peak_memory_bytes": 3190217438,
+              "rtf": 0.076029830440521,
+              "transcript": "版本是 MLX 0 3 1 1 API endpoint 是 VE Audio Transcriptions ZFAC 2026 年 8 月 21 日"
+            }
+          ],
+          "sample": {
+            "audio_filename": "terms_api_numbers.wav",
+            "category": "terms_api_numbers",
+            "id": "terms_api_numbers",
+            "notes": "Technical terms, API path, version, date, and numbers.",
+            "text": "版本是 MLX 0.31.1，API endpoint 是 /v1/audio/transcriptions，日期是 2026 年 8 月 21 日。"
+          },
+          "summary": {
+            "hot_blank_output_count": 0,
+            "hot_blank_output_rate": 0.0,
+            "hot_elapsed_median_s": 0.950144791015191,
+            "hot_elapsed_p95_s": 0.9539285791077419,
+            "hot_rtf_median": 0.076029830440521,
+            "hot_rtf_p95": 0.07633260615409633,
+            "hot_run_count": 3,
+            "hot_transcripts": [
+              "版本是 MLX 0 3 1 1 API endpoint 是 VE Audio Transcriptions ZFAC 2026 年 8 月 21 日",
+              "版本是 MLX 0 3 1 1 API endpoint 是 VE Audio Transcriptions ZFAC 2026 年 8 月 21 日",
+              "版本是 MLX 0 3 1 1 API endpoint 是 VE Audio Transcriptions ZFAC 2026 年 8 月 21 日"
+            ]
+          },
+          "warmup": {
+            "audio_duration_s": 12.497,
+            "blank_output": false,
+            "elapsed_s": 0.9589041250001173,
+            "mx_active_memory_bytes": 2344719950,
+            "mx_cache_memory_bytes": 1316245968,
+            "mx_peak_memory_bytes": 3190217438,
+            "rtf": 0.07673074537890033,
+            "transcript": "版本是 MLX 0 3 1 1 API endpoint 是 VE Audio Transcriptions ZFAC 2026 年 8 月 21 日"
+          }
+        },
+        {
+          "audio": {
+            "category": "longer_sentence",
+            "channels": 1,
+            "duration_s": 12.9305625,
+            "expected_text": "今天下午我們要在台北開一個 meeting，先確認 GitHub issue，再把 release candidate 部署到 staging，最後請同事用 iPhone 測試語音輸入。",
+            "frames": 206889,
+            "path": "/private/tmp/typelessmlx-breeze-quant-corpus-v1/longer_sentence.wav",
+            "sample_id": "longer_sentence",
+            "sample_rate_hz": 16000,
+            "sample_width_bytes": 2,
+            "sha256": "ec314b4f674da829ed0390fe523a7cc4fd0ff71b3763f8913da9bbd44b05e2a9",
+            "size_bytes": 417874
+          },
+          "hot_runs": [
+            {
+              "audio_duration_s": 12.9305625,
+              "blank_output": false,
+              "elapsed_s": 1.0697727919905446,
+              "mx_active_memory_bytes": 2344719950,
+              "mx_cache_memory_bytes": 1399282736,
+              "mx_peak_memory_bytes": 3190495966,
+              "rtf": 0.08273211563615616,
+              "transcript": "今天下午我們要在台北開一個 meeting先確認 GitHub issue再把 release candidate 部署到 staging最後請同事用 iPhone 測試語音輸入"
+            },
+            {
+              "audio_duration_s": 12.9305625,
+              "blank_output": false,
+              "elapsed_s": 1.0755347079830244,
+              "mx_active_memory_bytes": 2344719950,
+              "mx_cache_memory_bytes": 1399282736,
+              "mx_peak_memory_bytes": 3190495966,
+              "rtf": 0.08317772007080314,
+              "transcript": "今天下午我們要在台北開一個 meeting先確認 GitHub issue再把 release candidate 部署到 staging最後請同事用 iPhone 測試語音輸入"
+            },
+            {
+              "audio_duration_s": 12.9305625,
+              "blank_output": false,
+              "elapsed_s": 1.0690032499842346,
+              "mx_active_memory_bytes": 2344719950,
+              "mx_cache_memory_bytes": 1399282736,
+              "mx_peak_memory_bytes": 3190495966,
+              "rtf": 0.08267260221542833,
+              "transcript": "今天下午我們要在台北開一個 meeting先確認 GitHub issue再把 release candidate 部署到 staging最後請同事用 iPhone 測試語音輸入"
+            }
+          ],
+          "sample": {
+            "audio_filename": "longer_sentence.wav",
+            "category": "longer_sentence",
+            "id": "longer_sentence",
+            "notes": "Longer Taiwan Mandarin sentence with several English technical terms.",
+            "text": "今天下午我們要在台北開一個 meeting，先確認 GitHub issue，再把 release candidate 部署到 staging，最後請同事用 iPhone 測試語音輸入。"
+          },
+          "summary": {
+            "hot_blank_output_count": 0,
+            "hot_blank_output_rate": 0.0,
+            "hot_elapsed_median_s": 1.0697727919905446,
+            "hot_elapsed_p95_s": 1.0749585163837765,
+            "hot_rtf_median": 0.08273211563615616,
+            "hot_rtf_p95": 0.08313315962733844,
+            "hot_run_count": 3,
+            "hot_transcripts": [
+              "今天下午我們要在台北開一個 meeting先確認 GitHub issue再把 release candidate 部署到 staging最後請同事用 iPhone 測試語音輸入",
+              "今天下午我們要在台北開一個 meeting先確認 GitHub issue再把 release candidate 部署到 staging最後請同事用 iPhone 測試語音輸入",
+              "今天下午我們要在台北開一個 meeting先確認 GitHub issue再把 release candidate 部署到 staging最後請同事用 iPhone 測試語音輸入"
+            ]
+          },
+          "warmup": {
+            "audio_duration_s": 12.9305625,
+            "blank_output": false,
+            "elapsed_s": 1.0771939999831375,
+            "mx_active_memory_bytes": 2344719950,
+            "mx_cache_memory_bytes": 1399282736,
+            "mx_peak_memory_bytes": 3190495966,
+            "rtf": 0.0833060433359444,
+            "transcript": "今天下午我們要在台北開一個 meeting先確認 GitHub issue再把 release candidate 部署到 staging最後請同事用 iPhone 測試語音輸入"
+          }
+        }
+      ],
+      "schema_version": 1,
+      "worker_pid": 7140,
+      "worker_stderr": ""
+    },
+    {
+      "audio_dir": "/private/tmp/typelessmlx-breeze-quant-corpus-v1",
+      "cold": {
+        "first_inference": {
+          "audio_duration_s": 1.7036875,
+          "blank_output": false,
+          "elapsed_s": 0.7497686250135303,
+          "mx_active_memory_bytes": 894539342,
+          "mx_cache_memory_bytes": 1090540528,
+          "mx_peak_memory_bytes": 1751399510,
+          "rtf": 0.44008576984542663,
+          "transcript": "今天天氣很好"
+        },
+        "first_inference_sample_id": "short_zh",
+        "load_plus_first_inference_s": 0.8137645840179175,
+        "model_load": {
+          "elapsed_s": 0.06399595900438726,
+          "mx_active_memory_bytes": 890212368,
+          "mx_cache_memory_bytes": 16236,
+          "mx_peak_memory_bytes": 890212368
+        }
+      },
+      "config": {
+        "condition_on_previous_text": true,
+        "fp16": true,
+        "initial_prompt": "這是台灣中文與 English 混合語音辨識，請保留 API、MLX、Whisper、GitHub、URL、數字與英文大小寫。",
+        "language": "zh",
+        "task": "transcribe",
+        "temperature": 0.0,
+        "verbose": null,
+        "without_timestamps": true
+      },
+      "config_name": "zh_fp16_greedy",
+      "config_sha256": "d22b1f70a9cb07871d937382b2c970bbce87c6346ec59e5847933550eba84a72",
+      "created_at_utc": "2026-08-21T01:41:09.334+00:00",
+      "driver_command": "/Users/schsu/.local/share/typelessmlx/venv/bin/python /Users/schsu/Downloads/google/typelessmlx/benchmarks/breeze_quant/benchmark_models.py --worker --model-path /Users/schsu/.cache/huggingface/hub/models--BRlin--Breeze-ASR-25-mlx-4bit/snapshots/ba89325dcf6911c3fcd1ba7c7e813b1907f2a9e5 --model-label breeze-4bit --config-name zh_fp16_greedy --manifest /Users/schsu/Downloads/google/typelessmlx/benchmarks/breeze_quant/corpus_manifest.json --audio-dir /private/tmp/typelessmlx-breeze-quant-corpus-v1 --hot-runs 3 --sample-id short_zh --sample-id zh_start_mixed --sample-id english_start_mixed --sample-id terms_api_numbers --sample-id longer_sentence",
+      "harness_path": "/Users/schsu/Downloads/google/typelessmlx/benchmarks/breeze_quant/benchmark_models.py",
+      "harness_sha256": "4f83b726f8006d2588173eacc5f2701b423a1958c7b8a2ddc29643523f12483b",
+      "hot_runs_requested": 3,
+      "manifest_path": "/Users/schsu/Downloads/google/typelessmlx/benchmarks/breeze_quant/corpus_manifest.json",
+      "manifest_sha256": "7d4e3bbae5b03a627d4eaf2710aaa05026b11bfdeff008631f9e852ff6aeb161",
+      "model": {
+        "config": {
+          "model_type": "whisper",
+          "n_audio_ctx": 1500,
+          "n_audio_head": 20,
+          "n_audio_layer": 32,
+          "n_audio_state": 1280,
+          "n_mels": 80,
+          "n_text_ctx": 448,
+          "n_text_head": 20,
+          "n_text_layer": 32,
+          "n_text_state": 1280,
+          "n_vocab": 51865,
+          "quantization": {
+            "bits": 4,
+            "group_size": 64,
+            "mode": "affine"
+          }
+        },
+        "config_path": "/Users/schsu/.cache/huggingface/hub/models--BRlin--Breeze-ASR-25-mlx-4bit/snapshots/ba89325dcf6911c3fcd1ba7c7e813b1907f2a9e5/config.json",
+        "config_sha256": "d5e23a024eaa85793c557e36bfefd5e3deccf4ad015dc6a7cbccc7f625a2a5a1",
+        "files": {
+          ".gitattributes": {
+            "sha256": "11ad7efa24975ee4b0c3c3a38ed18737f0658a5f75a0a96787b576a78a023361",
+            "size_bytes": 1519
+          },
+          "README.md": {
+            "sha256": "c2afa66eaa08efdb28a6387b4d524f2452ce2122cb07c608e98e4426f1608923",
+            "size_bytes": 16691
+          },
+          "added_tokens.json": {
+            "sha256": "9715fd2243b6f06a5858b5e32950d2853f73dd5bc201aafcf76f5082a2d8acd1",
+            "size_bytes": 34604
+          },
+          "config.json": {
+            "sha256": "d5e23a024eaa85793c557e36bfefd5e3deccf4ad015dc6a7cbccc7f625a2a5a1",
+            "size_bytes": 330
+          },
+          "generation_config.json": {
+            "sha256": "8cd24239c76189ae8125d09f92bf883d7d7aa0893039462b0413ee19a088c1cc",
+            "size_bytes": 4289
+          },
+          "merges.txt": {
+            "sha256": "2df2990a395e35e8dfbc7511e08c12d56018d8d04691e0133e5d63b21e154dc6",
+            "size_bytes": 493869
+          },
+          "model.safetensors": {
+            "sha256": "db0f013a35a1c11a8ac84f882497686f7ba2597a73693eeeb38410eff1840da1",
+            "size_bytes": 877321424
+          },
+          "normalizer.json": {
+            "sha256": "bf1c507dc8724ca9cf9903640dacfb69dae2f00edee4f21ceba106a7392f26dd",
+            "size_bytes": 52666
+          },
+          "preprocessor_config.json": {
+            "sha256": "a6a76d28c93edb273669eb9e0b0636a2bddbb1272c3261e47b7ca6dfdbac1b8d",
+            "size_bytes": 339
+          },
+          "special_tokens_map.json": {
+            "sha256": "e67ae3a0aaa99abcd9f187138e12db1f65c16a14761c50ef10eef2c174a7a691",
+            "size_bytes": 2194
+          },
+          "tokenizer.json": {
+            "sha256": "ad9d585ff6f7948ae7687f0fbcccf52c9e0ab8105729e542e47a11e2e5f05071",
+            "size_bytes": 3930832
+          },
+          "tokenizer_config.json": {
+            "sha256": "4a5b5d589336cefaef5fd27995c030a42d7fab3de5ac19b6c6fa0afbcbcc4309",
+            "size_bytes": 282733
+          },
+          "vocab.json": {
+            "sha256": "8f680bba319e01a653d2e8a5dbc17a9157179e0576e6ce74ce0c06356c6e24f9",
+            "size_bytes": 835550
+          },
+          "weights.safetensors": {
+            "sha256": "db0f013a35a1c11a8ac84f882497686f7ba2597a73693eeeb38410eff1840da1",
+            "size_bytes": 877321424
+          }
+        },
+        "model_tree_sha256": "1564860d170954fd385b971e5c117345863c73414ed3cfd8ccba701e4ef9798c",
+        "path": "/Users/schsu/.cache/huggingface/hub/models--BRlin--Breeze-ASR-25-mlx-4bit/snapshots/ba89325dcf6911c3fcd1ba7c7e813b1907f2a9e5",
+        "weights_path": "/Users/schsu/.cache/huggingface/hub/models--BRlin--Breeze-ASR-25-mlx-4bit/snapshots/ba89325dcf6911c3fcd1ba7c7e813b1907f2a9e5/weights.safetensors",
+        "weights_sha256": "db0f013a35a1c11a8ac84f882497686f7ba2597a73693eeeb38410eff1840da1",
+        "weights_size_bytes": 877321424
+      },
+      "model_label": "breeze-4bit",
+      "result_type": "mlx_whisper_worker_result",
+      "runtime": {
+        "machine": "arm64",
+        "macos_version": "27.0",
+        "mlx_version": "0.31.1",
+        "mlx_whisper_version": "0.4.3",
+        "numpy_version": "2.4.3",
+        "platform": "macOS-27.0-arm64-arm-64bit",
+        "processor": "arm",
+        "python": "3.12.11 (main, Aug 18 2025, 19:02:39) [Clang 20.1.4 ]",
+        "python_executable": "/Users/schsu/.local/share/typelessmlx/venv/bin/python",
+        "release": "27.0.0",
+        "system": "Darwin"
+      },
+      "samples": [
+        {
+          "audio": {
+            "category": "short_zh",
+            "channels": 1,
+            "duration_s": 1.7036875,
+            "expected_text": "今天天氣很好。",
+            "frames": 27259,
+            "path": "/private/tmp/typelessmlx-breeze-quant-corpus-v1/short_zh.wav",
+            "sample_id": "short_zh",
+            "sample_rate_hz": 16000,
+            "sample_width_bytes": 2,
+            "sha256": "5f64e3a82aa02a471b9d25986634281aa32e9ec7c95303b742a7ac22e8c6192f",
+            "size_bytes": 58614
+          },
+          "cold_first_inference": {
+            "audio_duration_s": 1.7036875,
+            "blank_output": false,
+            "elapsed_s": 0.7497686250135303,
+            "mx_active_memory_bytes": 894539342,
+            "mx_cache_memory_bytes": 1090540528,
+            "mx_peak_memory_bytes": 1751399510,
+            "rtf": 0.44008576984542663,
+            "transcript": "今天天氣很好"
+          },
+          "hot_runs": [
+            {
+              "audio_duration_s": 1.7036875,
+              "blank_output": false,
+              "elapsed_s": 0.6163606249901932,
+              "mx_active_memory_bytes": 894539342,
+              "mx_cache_memory_bytes": 1090540528,
+              "mx_peak_memory_bytes": 1732565726,
+              "rtf": 0.3617803294267248,
+              "transcript": "今天天氣很好"
+            },
+            {
+              "audio_duration_s": 1.7036875,
+              "blank_output": false,
+              "elapsed_s": 0.6186600000073668,
+              "mx_active_memory_bytes": 894539342,
+              "mx_cache_memory_bytes": 1090540528,
+              "mx_peak_memory_bytes": 1732565726,
+              "rtf": 0.3631299754252859,
+              "transcript": "今天天氣很好"
+            },
+            {
+              "audio_duration_s": 1.7036875,
+              "blank_output": false,
+              "elapsed_s": 0.6185722499794792,
+              "mx_active_memory_bytes": 894539342,
+              "mx_cache_memory_bytes": 1090540528,
+              "mx_peak_memory_bytes": 1732565726,
+              "rtf": 0.36307846948426825,
+              "transcript": "今天天氣很好"
+            }
+          ],
+          "sample": {
+            "audio_filename": "short_zh.wav",
+            "category": "short_zh",
+            "id": "short_zh",
+            "notes": "Short Taiwan Mandarin baseline.",
+            "text": "今天天氣很好。"
+          },
+          "summary": {
+            "hot_blank_output_count": 0,
+            "hot_blank_output_rate": 0.0,
+            "hot_elapsed_median_s": 0.6185722499794792,
+            "hot_elapsed_p95_s": 0.618651225004578,
+            "hot_rtf_median": 0.36307846948426825,
+            "hot_rtf_p95": 0.36312482483118413,
+            "hot_run_count": 3,
+            "hot_transcripts": [
+              "今天天氣很好",
+              "今天天氣很好",
+              "今天天氣很好"
+            ]
+          },
+          "warmup": {
+            "audio_duration_s": 1.7036875,
+            "blank_output": false,
+            "elapsed_s": 0.6151125410106033,
+            "mx_active_memory_bytes": 894539342,
+            "mx_cache_memory_bytes": 1090540528,
+            "mx_peak_memory_bytes": 1732565726,
+            "rtf": 0.36104775142777257,
+            "transcript": "今天天氣很好"
+          }
+        },
+        {
+          "audio": {
+            "category": "zh_start_mixed",
+            "channels": 1,
+            "duration_s": 5.5001875,
+            "expected_text": "請幫我開啟 Python API，然後呼叫 Whisper model。",
+            "frames": 88003,
+            "path": "/private/tmp/typelessmlx-breeze-quant-corpus-v1/zh_start_mixed.wav",
+            "sample_id": "zh_start_mixed",
+            "sample_rate_hz": 16000,
+            "sample_width_bytes": 2,
+            "sha256": "a74e5dfd3d01fa8c8bfa8dcae7a6efae9936d8226bf483fd090f0bd18f41545d",
+            "size_bytes": 180102
+          },
+          "hot_runs": [
+            {
+              "audio_duration_s": 5.5001875,
+              "blank_output": false,
+              "elapsed_s": 0.689525457972195,
+              "mx_active_memory_bytes": 894539342,
+              "mx_cache_memory_bytes": 1149478528,
+              "mx_peak_memory_bytes": 1735203550,
+              "rtf": 0.1253639913134225,
+              "transcript": "請幫我開啟 Python API 然後呼叫 whisper model"
+            },
+            {
+              "audio_duration_s": 5.5001875,
+              "blank_output": false,
+              "elapsed_s": 0.6926197499851696,
+              "mx_active_memory_bytes": 894539342,
+              "mx_cache_memory_bytes": 1149478528,
+              "mx_peak_memory_bytes": 1735203550,
+              "rtf": 0.12592657068239393,
+              "transcript": "請幫我開啟 Python API 然後呼叫 whisper model"
+            },
+            {
+              "audio_duration_s": 5.5001875,
+              "blank_output": false,
+              "elapsed_s": 0.6858720419986639,
+              "mx_active_memory_bytes": 894539342,
+              "mx_cache_memory_bytes": 1149478528,
+              "mx_peak_memory_bytes": 1735203550,
+              "rtf": 0.12469975650805794,
+              "transcript": "請幫我開啟 Python API 然後呼叫 whisper model"
+            }
+          ],
+          "sample": {
+            "audio_filename": "zh_start_mixed.wav",
+            "category": "zh_start_mixed",
+            "id": "zh_start_mixed",
+            "notes": "Chinese-start code-switch with product and programming terms.",
+            "text": "請幫我開啟 Python API，然後呼叫 Whisper model。"
+          },
+          "summary": {
+            "hot_blank_output_count": 0,
+            "hot_blank_output_rate": 0.0,
+            "hot_elapsed_median_s": 0.689525457972195,
+            "hot_elapsed_p95_s": 0.6923103207838721,
+            "hot_rtf_median": 0.1253639913134225,
+            "hot_rtf_p95": 0.1258703127454968,
+            "hot_run_count": 3,
+            "hot_transcripts": [
+              "請幫我開啟 Python API 然後呼叫 whisper model",
+              "請幫我開啟 Python API 然後呼叫 whisper model",
+              "請幫我開啟 Python API 然後呼叫 whisper model"
+            ]
+          },
+          "warmup": {
+            "audio_duration_s": 5.5001875,
+            "blank_output": false,
+            "elapsed_s": 0.69204283397994,
+            "mx_active_memory_bytes": 894539342,
+            "mx_cache_memory_bytes": 1149478528,
+            "mx_peak_memory_bytes": 1735203550,
+            "rtf": 0.12582168043906503,
+            "transcript": "請幫我開啟 Python API 然後呼叫 whisper model"
+          }
+        },
+        {
+          "audio": {
+            "category": "english_start_mixed",
+            "channels": 1,
+            "duration_s": 3.680375,
+            "expected_text": "Please open 設定，切換到快速模式。",
+            "frames": 58886,
+            "path": "/private/tmp/typelessmlx-breeze-quant-corpus-v1/english_start_mixed.wav",
+            "sample_id": "english_start_mixed",
+            "sample_rate_hz": 16000,
+            "sample_width_bytes": 2,
+            "sha256": "740c8a3ed36b64ddb2b5bdc5b0be35a1198f00452e6eca4d96fd537443c7d00a",
+            "size_bytes": 121868
+          },
+          "hot_runs": [
+            {
+              "audio_duration_s": 3.680375,
+              "blank_output": false,
+              "elapsed_s": 0.6851068329997361,
+              "mx_active_memory_bytes": 894539342,
+              "mx_cache_memory_bytes": 1164355200,
+              "mx_peak_memory_bytes": 1733974750,
+              "rtf": 0.1861513658254216,
+              "transcript": "Please open 設定 切換到快速模式"
+            },
+            {
+              "audio_duration_s": 3.680375,
+              "blank_output": false,
+              "elapsed_s": 0.6805312500218861,
+              "mx_active_memory_bytes": 894539342,
+              "mx_cache_memory_bytes": 1164355200,
+              "mx_peak_memory_bytes": 1733974750,
+              "rtf": 0.18490812757446892,
+              "transcript": "Please open 設定 切換到快速模式"
+            },
+            {
+              "audio_duration_s": 3.680375,
+              "blank_output": false,
+              "elapsed_s": 0.6792120840109419,
+              "mx_active_memory_bytes": 894539342,
+              "mx_cache_memory_bytes": 1164355200,
+              "mx_peak_memory_bytes": 1733974750,
+              "rtf": 0.18454969507480676,
+              "transcript": "Please open 設定 切換到快速模式"
+            }
+          ],
+          "sample": {
+            "audio_filename": "english_start_mixed.wav",
+            "category": "english_start_mixed",
+            "id": "english_start_mixed",
+            "notes": "English-start code-switch with a Taiwan Mandarin UI phrase.",
+            "text": "Please open 設定，切換到快速模式。"
+          },
+          "summary": {
+            "hot_blank_output_count": 0,
+            "hot_blank_output_rate": 0.0,
+            "hot_elapsed_median_s": 0.6805312500218861,
+            "hot_elapsed_p95_s": 0.684649274701951,
+            "hot_rtf_median": 0.18490812757446892,
+            "hot_rtf_p95": 0.18602704200032633,
+            "hot_run_count": 3,
+            "hot_transcripts": [
+              "Please open 設定 切換到快速模式",
+              "Please open 設定 切換到快速模式",
+              "Please open 設定 切換到快速模式"
+            ]
+          },
+          "warmup": {
+            "audio_duration_s": 3.680375,
+            "blank_output": false,
+            "elapsed_s": 0.6896087079949211,
+            "mx_active_memory_bytes": 894539342,
+            "mx_cache_memory_bytes": 1164355200,
+            "mx_peak_memory_bytes": 1733974750,
+            "rtf": 0.18737457677408445,
+            "transcript": "Please open 設定 切換到快速模式"
+          }
+        },
+        {
+          "audio": {
+            "category": "terms_api_numbers",
+            "channels": 1,
+            "duration_s": 12.497,
+            "expected_text": "版本是 MLX 0.31.1，API endpoint 是 /v1/audio/transcriptions，日期是 2026 年 8 月 21 日。",
+            "frames": 199952,
+            "path": "/private/tmp/typelessmlx-breeze-quant-corpus-v1/terms_api_numbers.wav",
+            "sample_id": "terms_api_numbers",
+            "sample_rate_hz": 16000,
+            "sample_width_bytes": 2,
+            "sha256": "085c4e9e14fa61e223ffb865b9f82ae27b74e1afa76c28ca77c3e89349de0261",
+            "size_bytes": 404000
+          },
+          "hot_runs": [
+            {
+              "audio_duration_s": 12.497,
+              "blank_output": false,
+              "elapsed_s": 0.7968260839988943,
+              "mx_active_memory_bytes": 894539342,
+              "mx_cache_memory_bytes": 1233575760,
+              "mx_peak_memory_bytes": 1740036830,
+              "rtf": 0.06376138945338036,
+              "transcript": "版本是 MLX 0 3 1 1 API endpoint 是 V1 audio transcriptions ZFAC 2026 年 8 月 21 日"
+            },
+            {
+              "audio_duration_s": 12.497,
+              "blank_output": false,
+              "elapsed_s": 0.7946506660082377,
+              "mx_active_memory_bytes": 894539342,
+              "mx_cache_memory_bytes": 1233575760,
+              "mx_peak_memory_bytes": 1740036830,
+              "rtf": 0.06358731423607568,
+              "transcript": "版本是 MLX 0 3 1 1 API endpoint 是 V1 audio transcriptions ZFAC 2026 年 8 月 21 日"
+            },
+            {
+              "audio_duration_s": 12.497,
+              "blank_output": false,
+              "elapsed_s": 0.793652624997776,
+              "mx_active_memory_bytes": 894539342,
+              "mx_cache_memory_bytes": 1233575760,
+              "mx_peak_memory_bytes": 1740036830,
+              "rtf": 0.06350745178825126,
+              "transcript": "版本是 MLX 0 3 1 1 API endpoint 是 V1 audio transcriptions ZFAC 2026 年 8 月 21 日"
+            }
+          ],
+          "sample": {
+            "audio_filename": "terms_api_numbers.wav",
+            "category": "terms_api_numbers",
+            "id": "terms_api_numbers",
+            "notes": "Technical terms, API path, version, date, and numbers.",
+            "text": "版本是 MLX 0.31.1，API endpoint 是 /v1/audio/transcriptions，日期是 2026 年 8 月 21 日。"
+          },
+          "summary": {
+            "hot_blank_output_count": 0,
+            "hot_blank_output_rate": 0.0,
+            "hot_elapsed_median_s": 0.7946506660082377,
+            "hot_elapsed_p95_s": 0.7966085421998287,
+            "hot_rtf_median": 0.06358731423607568,
+            "hot_rtf_p95": 0.06374398193164989,
+            "hot_run_count": 3,
+            "hot_transcripts": [
+              "版本是 MLX 0 3 1 1 API endpoint 是 V1 audio transcriptions ZFAC 2026 年 8 月 21 日",
+              "版本是 MLX 0 3 1 1 API endpoint 是 V1 audio transcriptions ZFAC 2026 年 8 月 21 日",
+              "版本是 MLX 0 3 1 1 API endpoint 是 V1 audio transcriptions ZFAC 2026 年 8 月 21 日"
+            ]
+          },
+          "warmup": {
+            "audio_duration_s": 12.497,
+            "blank_output": false,
+            "elapsed_s": 0.8014310830039904,
+            "mx_active_memory_bytes": 894539342,
+            "mx_cache_memory_bytes": 1233575760,
+            "mx_peak_memory_bytes": 1740036830,
+            "rtf": 0.06412987781099387,
+            "transcript": "版本是 MLX 0 3 1 1 API endpoint 是 V1 audio transcriptions ZFAC 2026 年 8 月 21 日"
+          }
+        },
+        {
+          "audio": {
+            "category": "longer_sentence",
+            "channels": 1,
+            "duration_s": 12.9305625,
+            "expected_text": "今天下午我們要在台北開一個 meeting，先確認 GitHub issue，再把 release candidate 部署到 staging，最後請同事用 iPhone 測試語音輸入。",
+            "frames": 206889,
+            "path": "/private/tmp/typelessmlx-breeze-quant-corpus-v1/longer_sentence.wav",
+            "sample_id": "longer_sentence",
+            "sample_rate_hz": 16000,
+            "sample_width_bytes": 2,
+            "sha256": "ec314b4f674da829ed0390fe523a7cc4fd0ff71b3763f8913da9bbd44b05e2a9",
+            "size_bytes": 417874
+          },
+          "hot_runs": [
+            {
+              "audio_duration_s": 12.9305625,
+              "blank_output": false,
+              "elapsed_s": 0.8914061669784132,
+              "mx_active_memory_bytes": 894539342,
+              "mx_cache_memory_bytes": 1333091832,
+              "mx_peak_memory_bytes": 1740315358,
+              "rtf": 0.06893792648064716,
+              "transcript": "今天下午我們要在台北開一個 meeting 先確認 GitHub issue 再把 release candidate 部署到 staging 最後請同事用 iPhone 測試語音輸入"
+            },
+            {
+              "audio_duration_s": 12.9305625,
+              "blank_output": false,
+              "elapsed_s": 0.8886816249869298,
+              "mx_active_memory_bytes": 894539342,
+              "mx_cache_memory_bytes": 1333091832,
+              "mx_peak_memory_bytes": 1740315358,
+              "rtf": 0.06872722087588454,
+              "transcript": "今天下午我們要在台北開一個 meeting 先確認 GitHub issue 再把 release candidate 部署到 staging 最後請同事用 iPhone 測試語音輸入"
+            },
+            {
+              "audio_duration_s": 12.9305625,
+              "blank_output": false,
+              "elapsed_s": 0.8882414580148179,
+              "mx_active_memory_bytes": 894539342,
+              "mx_cache_memory_bytes": 1333091832,
+              "mx_peak_memory_bytes": 1740315358,
+              "rtf": 0.0686931800542179,
+              "transcript": "今天下午我們要在台北開一個 meeting 先確認 GitHub issue 再把 release candidate 部署到 staging 最後請同事用 iPhone 測試語音輸入"
+            }
+          ],
+          "sample": {
+            "audio_filename": "longer_sentence.wav",
+            "category": "longer_sentence",
+            "id": "longer_sentence",
+            "notes": "Longer Taiwan Mandarin sentence with several English technical terms.",
+            "text": "今天下午我們要在台北開一個 meeting，先確認 GitHub issue，再把 release candidate 部署到 staging，最後請同事用 iPhone 測試語音輸入。"
+          },
+          "summary": {
+            "hot_blank_output_count": 0,
+            "hot_blank_output_rate": 0.0,
+            "hot_elapsed_median_s": 0.8886816249869298,
+            "hot_elapsed_p95_s": 0.8911337127792649,
+            "hot_rtf_median": 0.06872722087588454,
+            "hot_rtf_p95": 0.0689168559201709,
+            "hot_run_count": 3,
+            "hot_transcripts": [
+              "今天下午我們要在台北開一個 meeting 先確認 GitHub issue 再把 release candidate 部署到 staging 最後請同事用 iPhone 測試語音輸入",
+              "今天下午我們要在台北開一個 meeting 先確認 GitHub issue 再把 release candidate 部署到 staging 最後請同事用 iPhone 測試語音輸入",
+              "今天下午我們要在台北開一個 meeting 先確認 GitHub issue 再把 release candidate 部署到 staging 最後請同事用 iPhone 測試語音輸入"
+            ]
+          },
+          "warmup": {
+            "audio_duration_s": 12.9305625,
+            "blank_output": false,
+            "elapsed_s": 0.8968114590097684,
+            "mx_active_memory_bytes": 894539342,
+            "mx_cache_memory_bytes": 1333091832,
+            "mx_peak_memory_bytes": 1740315358,
+            "rtf": 0.06935595098896652,
+            "transcript": "今天下午我們要在台北開一個 meeting 先確認 GitHub issue 再把 release candidate 部署到 staging 最後請同事用 iPhone 測試語音輸入"
+          }
+        }
+      ],
+      "schema_version": 1,
+      "worker_pid": 7176,
+      "worker_stderr": ""
+    }
+  ],
+  "runtime": {
+    "machine": "arm64",
+    "macos_version": "27.0",
+    "mlx_version": "0.31.1",
+    "mlx_whisper_version": "0.4.3",
+    "numpy_version": "2.4.3",
+    "platform": "macOS-27.0-arm64-arm-64bit",
+    "processor": "arm",
+    "python": "3.12.11 (main, Aug 18 2025, 19:02:39) [Clang 20.1.4 ]",
+    "python_executable": "/Users/schsu/.local/share/typelessmlx/venv/bin/python",
+    "release": "27.0.0",
+    "system": "Darwin"
+  },
+  "schema_version": 1,
+  "started_at_utc": "2026-08-21T01:39:37.255+00:00"
+}

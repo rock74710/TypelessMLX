@@ -56,7 +56,7 @@ DEVELOPER_DIR=/Applications/Xcode-beta.app/Contents/Developer swift build -c rel
 
 - Live preview 仍使用 legacy `SFSpeechRecognizer`。
 - 尚未把錄音中的 PCM buffer 轉成 `AnalyzerInput` 串流給新 API。
-- 尚未進行多位真人、不同口音與不同背景噪音的 Apple／Breeze 品質比較。
+- 已完成兩位 ASCEND 說話者的方向性 Breeze 量化比較，但尚未進行台灣真人、不同麥克風與背景噪音的產品品質比較。
 - 既有 `AudioRecorder.swift` 仍有 CoreAudio `CFString` pointer compiler warnings。
 
 ## Breeze 低精度是否可行？
@@ -112,11 +112,71 @@ DEVELOPER_DIR=/Applications/Xcode-beta.app/Contents/Developer swift build -c rel
 - 技術詞 exact recall 降幅不超過 1 個百分點。
 - 繁體中文輸出率與數字／英文大小寫不得明顯退化。
 
+## 本機量化實測結果
+
+### 環境與方法
+
+- Mac：M4 Pro、24 GB unified memory。
+- Runtime：macOS 27.0 arm64、Python 3.12.11、`mlx-whisper 0.4.3`、MLX `0.31.1`。
+- 所有模型使用相同參數：固定 `language="zh"`、`temperature=0.0`、`without_timestamps=true`、相同 bilingual prompt。
+- 每個模型使用 fresh subprocess，模型之間嚴格依序執行。
+- 每個音檔先 warm-up，再計時 3 次 hot inference。
+- Peak MLX memory 包含 model load、cold inference、warm-up 與 hot runs。
+
+建立的 artifact：
+
+| 模式 | 量化方式 | Weights |
+|---|---|---:|
+| FP16 | 原始 Breeze | 2.871 GiB |
+| 8-bit | 所有 Linear／Embedding，affine group-64 | 1.532 GiB |
+| 6-bit | 所有 Linear／Embedding，affine group-64 | 1.174 GiB |
+| Hybrid | 只量化 encoder Linear 為 6-bit | 2.175 GiB |
+| 4-bit | BRlin artifact，affine group-64 | 0.817 GiB |
+
+### 合成中英語音方向性結果
+
+五段 macOS `say` Meijia 合成音訊、共 15 次 hot run。此組只適合速度、記憶體與 regression 檢查，不是人類語音 accuracy evidence。
+
+| 模型 | Hot median | Hot p95 | Peak MLX | 空白 | 與 FP16 不同 |
+|---|---:|---:|---:|---:|---:|
+| FP16 | 0.769s | 1.056s | 3.673 GiB | 0/15 | 0/15 |
+| 8-bit | 0.726s | 0.956s | 2.346 GiB | 0/15 | 0/15 |
+| 6-bit | 0.728s | 0.949s | 1.988 GiB | 0/15 | 0/15 |
+| Hybrid | 0.784s | 1.072s | 2.982 GiB | 0/15 | 0/15 |
+| 4-bit | 0.690s | 0.889s | 1.631 GiB | 0/15 | 9/15，分布於 3/5 句型 |
+
+完整結果：[synthetic summary](../benchmarks/breeze_quant/results/summary.md)。
+
+### 真人 ASCEND mixed subset
+
+使用官方 `CAiRE/ASCEND` test split revision `737e9800ae31be9932ba8464c80366559bd28424` 的 17 段真人 mixed utterances，共 77.95 秒：8 段中文開頭、9 段英文開頭、兩位說話者。資料授權為 CC BY-SA 4.0。這是 bounded directional subset，不是完整 ASCEND，也不是台灣口音產品語料。
+
+| 模型 | Hot median | Hot p95 | Peak MLX | Mixed error | 空白 | 不同於 FP16 的句子 |
+|---|---:|---:|---:|---:|---:|---:|
+| FP16 | 0.713s | 0.913s | 3.680 GiB | 34.93% | 0/51 | 0/17 |
+| 8-bit | 0.723s | 0.869s | 2.352 GiB | 35.29% | 0/51 | 1/17 |
+| 6-bit | 0.703s | 0.845s | 1.995 GiB | 35.66% | 0/51 | 1/17 |
+| Hybrid | 0.784s | 0.954s | 2.988 GiB | 34.93% | 0/51 | 0/17 |
+| 4-bit | 0.699s | 0.833s | 1.638 GiB | 36.03% | 0/51 | 9/17 |
+
+主 mixed error 使用 NFKC 正規化後的中日韓單字元、英文詞與連續數字 token Levenshtein；忽略標點與英文大小寫。大小寫敏感與標點結果另存於完整 JSON。
+
+完整結果：[ASCEND real-speech summary](../benchmarks/breeze_quant/results/ascend_real_summary.md)。
+
+### 實測判讀
+
+- **FP16**：仍應是高精度基準。Peak 約 3.68 GiB。
+- **8-bit**：目前最合理的平衡模式。Peak memory 減少約 36%，mixed error 只增加 0.36 個百分點；median 沒有明顯加速，但 p95 約快 4.8%。
+- **6-bit**：Peak memory 減少約 46%，p95 約快 7.4%，但 mixed error 增加 0.73 個百分點，超過原先 0.5 pp gate；較適合「平衡－省記憶體」次選項。
+- **Hybrid encoder-only**：文字和 FP16 完全相同，但 memory 只省約 19%，median 約慢 10%；目前 predicate 不值得作產品模式。
+- **4-bit**：Peak memory 減少約 55%，p95 約快 8.8%，但 mixed error 增加 1.10 個百分點，17 段中有 9 段文字改變。適合低記憶體模式，不適合取代 FP16。
+- 這個 17 段 subset 所有模型都沒有空白輸出；不能推翻第三方完整 1,315 短句測試中 4-bit 空白輸出增加的結果。
+
 ## 建議產品模式
 
 - **快速模式**：Apple 新 Speech API。
 - **台灣中英高精度**：Breeze FP16。
-- **Breeze 平衡模式**：通過驗證後採 8-bit／6-bit 或 hybrid。
+- **Breeze 平衡模式**：優先 8-bit；6-bit 可作更省記憶體的次選項。
 - **低記憶體模式**：4-bit，清楚標示短句漏字風險。
 
-目前不建議直接把 Breeze FP16 全面替換成 4-bit；最值得先做的是建立可重現 benchmark，接著產生 8-bit 與 6-bit artifact，找出品質與延遲的 Pareto 最佳點。
+目前不建議直接把 Breeze FP16 全面替換成 4-bit。若要先推出一個平衡模式，這輪實測支持從 8-bit 開始；正式上線前仍需使用台灣真人與產品麥克風語料完成 gate。
