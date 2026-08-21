@@ -1,6 +1,7 @@
 import SwiftUI
 import Combine
 import AVFoundation
+import TypelessMLXHotkeySupport
 import TypelessMLXSpeechBackendPolicy
 
 enum AppStatus: String {
@@ -93,7 +94,21 @@ class AppState: ObservableObject {
     @AppStorage("showFloatingOverlay") var showFloatingOverlay: Bool = true
     @AppStorage("playSounds") var playSounds: Bool = false
     @AppStorage("launchAtLogin") var launchAtLogin: Bool = false
-    @AppStorage("hotkeyKeyCode") var hotkeyKeyCode: Int = 61  // Right Option
+    @AppStorage("hotkeyKeyCode") var hotkeyKeyCode: Int = HotkeyDefinition.defaultDefinition.keyCode { // Right Option
+        didSet {
+            // Keep direct writes safe as well as values loaded during init.
+            // This preserves the old AppStorage key while preventing an
+            // invalid legacy value from disabling the global listener.
+            guard HotkeyDefinition.isSupportedKeyCode(hotkeyKeyCode) else {
+                logWarn(
+                    "AppState",
+                    "Unsupported persisted hotkey key code \(hotkeyKeyCode); falling back to Right Option"
+                )
+                hotkeyKeyCode = HotkeyDefinition.defaultDefinition.keyCode
+                return
+            }
+        }
+    }
     @AppStorage("language") var language: String = "auto"
     @AppStorage("hotkeyMode") var hotkeyMode: String = "toggle"  // "toggle" or "hold"
     @AppStorage("maxHistoryCount") var maxHistoryCount: Int = 50
@@ -104,6 +119,12 @@ class AppState: ObservableObject {
     // Live transcription text (set by WhisperBridge progress callbacks)
     @Published var liveTranscriptionConfirmedText: String = ""
     @Published var liveTranscriptionUnconfirmedText: String = ""
+
+    /// The complete, validated hotkey description shared by the settings UI,
+    /// event monitor and status-bar menu.
+    var hotkeyDefinition: HotkeyDefinition {
+        HotkeyDefinition.sanitizedDefinition(forKeyCode: hotkeyKeyCode)
+    }
 
     // Available MLX models
     static let availableModels: [MLXModel] = [
@@ -196,6 +217,14 @@ class AppState: ObservableObject {
     }
 
     private init() {
+        let persistedHotkeyKeyCode = hotkeyKeyCode
+        if !HotkeyDefinition.isSupportedKeyCode(persistedHotkeyKeyCode) {
+            logWarn(
+                "AppState",
+                "Unsupported persisted hotkey key code \(persistedHotkeyKeyCode); falling back to Right Option"
+            )
+            hotkeyKeyCode = HotkeyDefinition.defaultDefinition.keyCode
+        }
         loadHistory()
         logInfo("AppState", "Initialized. Model=\(selectedModelID), Language=\(language), Mode=\(hotkeyMode)")
     }

@@ -26,6 +26,7 @@ Apple 引擎不假設所有 Mac 都支援 `zh-TW`。程式必須在 runtime 檢�
 | [TICKET-001](TICKET-001-modern-speech-backend.md) | macOS 26 新 Speech final backend 與 legacy fallback | 無 | ✅ 完成 |
 | [TICKET-002](TICKET-002-routing-context-and-telemetry.md) | App 路由、contextual glossary、設定與 telemetry | TICKET-001 的介面 | ✅ 完成 |
 | [TICKET-003](TICKET-003-tests-docs-and-release.md) | 測試、文件、相容性驗證與交付 | TICKET-001、002 | ✅ 完成 |
+| [TICKET-004](TICKET-004-customizable-dictation-hotkey.md) | 可自訂單一修飾鍵聽寫快捷鍵 | 無 | ✅ 完成 |
 
 ## 驗證紀錄
 

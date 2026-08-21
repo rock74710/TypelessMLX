@@ -1,5 +1,6 @@
 import Cocoa
 import Carbon
+import TypelessMLXHotkeySupport
 
 /// Guards coordinator cleanup when a backend (or a backend fallback) happens
 /// to deliver more than one callback for the same audio file.
@@ -21,6 +22,9 @@ class HotkeyManager {
     private var isProcessing = false
     private var consecutiveFailures = 0
     private static let maxConsecutiveFailures = 3
+    private var hotkeyIsPressed = false
+    private var lastHotkeyKeyCode: Int?
+    private var hotkeyCaptureIsActive = false
 
     private init() {}
 
@@ -35,6 +39,19 @@ class HotkeyManager {
             object: nil
         )
         logInfo("HotkeyManager", "Setup. keyCode=\(appState.hotkeyKeyCode), mode=\(appState.hotkeyMode)")
+    }
+
+    /// Temporarily suppress dictation events while the settings window is
+    /// recording a replacement modifier.  The event monitors remain in place
+    /// so changing a hotkey takes effect immediately without rebuilding them.
+    func setHotkeyCaptureActive(_ active: Bool) {
+        lock.lock()
+        hotkeyCaptureIsActive = active
+        if active {
+            hotkeyIsPressed = false
+            lastHotkeyKeyCode = nil
+        }
+        lock.unlock()
     }
 
     @objc private func handleAudioDeviceLost() {
@@ -59,18 +76,41 @@ class HotkeyManager {
     private func handleFlagsChanged(_ event: NSEvent) {
         guard let appState = appState else { return }
 
+        let definition = appState.hotkeyDefinition
         let keyCode = Int(event.keyCode)
-        guard keyCode == appState.hotkeyKeyCode else { return }
+        guard keyCode == definition.keyCode else { return }
 
-        let isKeyPressed = event.modifierFlags.contains(.option)
+        let modifierState = HotkeyModifierState(
+            eventModifierFlagsRawValue: event.modifierFlags.rawValue
+        )
+        let isKeyPressed = definition.isKeyDown(for: modifierState)
         let mode = appState.hotkeyMode
 
         lock.lock()
-        let currentlyRecording = isRecording
-        let processing = isProcessing
+        guard !hotkeyCaptureIsActive else {
+            lock.unlock()
+            return
+        }
+        if lastHotkeyKeyCode != definition.keyCode {
+            lastHotkeyKeyCode = definition.keyCode
+            hotkeyIsPressed = false
+        }
+        // A flagsChanged monitor can receive duplicate state notifications
+        // when multiple modifier keys are held.  Only one transition per
+        // physical press/release may affect dictation.
+        guard hotkeyIsPressed != isKeyPressed else {
+            lock.unlock()
+            return
+        }
+        hotkeyIsPressed = isKeyPressed
         lock.unlock()
 
         DispatchQueue.main.async {
+            self.lock.lock()
+            let currentlyRecording = self.isRecording
+            let processing = self.isProcessing
+            self.lock.unlock()
+
             if mode == "hold" {
                 // Hold-to-talk: press=start, release=stop
                 if isKeyPressed && !currentlyRecording && !processing {

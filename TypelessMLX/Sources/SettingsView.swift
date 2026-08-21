@@ -1,6 +1,8 @@
 import SwiftUI
+import AppKit
 import AVFoundation
 import ServiceManagement
+import TypelessMLXHotkeySupport
 
 struct SettingsView: View {
     @EnvironmentObject var appState: AppState
@@ -30,9 +32,43 @@ struct SettingsView: View {
 
 // MARK: - General Tab
 
+/// Owns the local event monitor used while the user records a replacement
+/// modifier.  It is kept separate from the SwiftUI value view so the monitor
+/// token has an explicit lifetime and is always removed on cancellation.
+private final class HotkeyCaptureMonitor: ObservableObject {
+    private var monitor: Any?
+    private var handler: ((NSEvent) -> Bool)?
+
+    func start(handler: @escaping (NSEvent) -> Bool) {
+        stop()
+        self.handler = handler
+        monitor = NSEvent.addLocalMonitorForEvents(matching: [.flagsChanged, .keyDown]) { [weak self] event in
+            guard let self else { return event }
+            return self.handler?(event) == true ? nil : event
+        }
+    }
+
+    func stop() {
+        if let monitor {
+            NSEvent.removeMonitor(monitor)
+        }
+        monitor = nil
+        handler = nil
+    }
+
+    deinit {
+        stop()
+        HotkeyManager.shared.setHotkeyCaptureActive(false)
+    }
+}
+
 struct GeneralSettingsTab: View {
     @EnvironmentObject var appState: AppState
     @State private var inputDevices: [(name: String, uid: String)] = []
+    @StateObject private var hotkeyCaptureMonitor = HotkeyCaptureMonitor()
+    @State private var isRecordingHotkey = false
+    @State private var hotkeyCaptureMessage: String?
+    @State private var hotkeyCaptureMessageIsError = false
 
     var body: some View {
         Form {
@@ -40,7 +76,32 @@ struct GeneralSettingsTab: View {
                 HStack {
                     Text("辨識快捷鍵")
                     Spacer()
-                    Text(hotkeyDisplayName).foregroundColor(.secondary)
+                    Text(appState.hotkeyDefinition.displayName).foregroundColor(.secondary)
+                    Button(isRecordingHotkey ? "等待按鍵…" : "錄製快捷鍵") {
+                        if isRecordingHotkey {
+                            finishHotkeyCapture(message: "已取消快捷鍵錄製", isError: false)
+                        } else {
+                            beginHotkeyCapture()
+                        }
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+                }
+
+                if isRecordingHotkey {
+                    Label(
+                        "請按一下 Option、Command、Control 或 Shift；按 Esc 取消",
+                        systemImage: "record.circle"
+                    )
+                    .font(.caption)
+                    .foregroundColor(.accentColor)
+                }
+
+                if let hotkeyCaptureMessage {
+                    Text(hotkeyCaptureMessage)
+                        .font(.caption)
+                        .foregroundColor(hotkeyCaptureMessageIsError ? .red : .secondary)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
 
                 Picker("模式", selection: $appState.hotkeyMode) {
@@ -114,20 +175,15 @@ struct GeneralSettingsTab: View {
         .onAppear {
             inputDevices = AudioRecorder.availableInputDevices()
         }
+        .onDisappear {
+            finishHotkeyCapture()
+        }
     }
 
     private var appVersion: String {
         let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "—"
         let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "—"
         return "\(version) (build \(build))"
-    }
-
-    private var hotkeyDisplayName: String {
-        switch appState.hotkeyKeyCode {
-        case 61: return "Right ⌥ Option"
-        case 58: return "Left ⌥ Option"
-        default: return "Key \(appState.hotkeyKeyCode)"
-        }
     }
 
     private var nativeSpeechStatusText: String {
@@ -145,6 +201,68 @@ struct GeneralSettingsTab: View {
             } catch {
                 logWarn("Settings", "Failed to set launch at login: \(error)")
             }
+        }
+    }
+
+    private func beginHotkeyCapture() {
+        hotkeyCaptureMessage = nil
+        hotkeyCaptureMessageIsError = false
+        isRecordingHotkey = true
+        HotkeyManager.shared.setHotkeyCaptureActive(true)
+        hotkeyCaptureMonitor.start { [self] event in
+            handleHotkeyCaptureEvent(event)
+        }
+    }
+
+    @discardableResult
+    private func handleHotkeyCaptureEvent(_ event: NSEvent) -> Bool {
+        guard isRecordingHotkey else { return false }
+
+        let keyCode = Int(event.keyCode)
+        if event.type == .keyDown {
+            if keyCode == HotkeyDefinition.escapeKeyCode {
+                finishHotkeyCapture(message: "已取消快捷鍵錄製", isError: false)
+            } else {
+                finishHotkeyCapture(
+                    message: HotkeyDefinition.unsupportedKeyMessage(forKeyCode: keyCode),
+                    isError: true
+                )
+            }
+            return true
+        }
+
+        guard let definition = HotkeyDefinition.definition(forKeyCode: keyCode) else {
+            finishHotkeyCapture(
+                message: HotkeyDefinition.unsupportedKeyMessage(forKeyCode: keyCode),
+                isError: true
+            )
+            return true
+        }
+
+        let modifierState = HotkeyModifierState(
+            eventModifierFlagsRawValue: event.modifierFlags.rawValue
+        )
+        // A flagsChanged event is emitted for both press and release.  Only
+        // accept the press transition so a key released after opening the
+        // settings window cannot overwrite the current choice.
+        guard definition.isKeyDown(for: modifierState) else { return false }
+
+        appState.hotkeyKeyCode = definition.keyCode
+        finishHotkeyCapture(
+            message: "快捷鍵已設定為 \(definition.displayName)",
+            isError: false
+        )
+        return true
+    }
+
+    private func finishHotkeyCapture(message: String? = nil, isError: Bool = false) {
+        guard isRecordingHotkey || message != nil else { return }
+        hotkeyCaptureMonitor.stop()
+        HotkeyManager.shared.setHotkeyCaptureActive(false)
+        isRecordingHotkey = false
+        if let message {
+            hotkeyCaptureMessage = message
+            hotkeyCaptureMessageIsError = isError
         }
     }
 }

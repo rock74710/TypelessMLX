@@ -2,7 +2,11 @@
 
 ## [Unreleased]
 
+## [1.0.3] - 2026-08-21
+
 ### 新增
+- **可自訂聽寫快捷鍵**：可在「偏好設定 → 一般 → 快捷鍵」錄製 Left／Right Option、Command、Control 或 Shift；變更立即生效並保留至下次啟動
+- **快捷鍵安全錄製**：錄製期間暫停聽寫觸發，支援 Escape 取消，並拒絕 Caps Lock、一般按鍵及未知 key code
 - **macOS 原生語音辨識雙模式**：macOS 26+ 在精確 locale、系統能力與 Speech asset 都符合時優先使用 `SpeechAnalyzer`／`SpeechTranscriber`；不支援時自動回退 `SFSpeechRecognizer` 相容模式
 - **快速／高精度路由說明**：原生 macOS 語音辨識維持快速免模型模式，Breeze-ASR-25 維持台灣中英高精度 MLX 模式；Breeze、Qwen 與 Whisper 路徑不變
 - **離線 backend policy 測試**：加入精確 BCP-47 locale 比對、contextual glossary 正規化與 modern/legacy fallback 的 executable tests
@@ -14,6 +18,7 @@
   - 載入期間 overlay 顯示「⏳ 載入模型中...」
 
 ### 改善
+- 設定頁與選單列共用相同快捷鍵名稱，無效的舊設定會安全回退為 Right Option
 - **Breeze 預設 artifact**：Breeze 維持 `breeze-asr-25` model ID，優先使用本機 affine 8-bit artifact（group size 64）；缺少時依序回退既有 FP16 local artifact 與 `schsu/breeze-asr-25-mlx` HF repo，既有使用者不需重新下載。
 - 文字修正（TextRefiner）預設開啟（需 macOS 26+）
 - 若 Whisper 已輸出帶標點文字，自動跳過 TextRefiner 以節省時間

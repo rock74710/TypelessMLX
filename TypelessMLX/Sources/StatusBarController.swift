@@ -2,6 +2,7 @@ import AppKit
 import SwiftUI
 import Combine
 import UserNotifications
+import TypelessMLXHotkeySupport
 
 class StatusBarController {
     private var statusItem: NSStatusItem
@@ -122,7 +123,11 @@ class StatusBarController {
 
         // Hotkey hint
         let modeText = appState.hotkeyMode == "hold" ? "按住錄音" : "按一下切換錄音"
-        let hintItem = NSMenuItem(title: "Right ⌥ Option → \(modeText)", action: nil, keyEquivalent: "")
+        let hintItem = NSMenuItem(
+            title: "\(appState.hotkeyDefinition.displayName) → \(modeText)",
+            action: nil,
+            keyEquivalent: ""
+        )
         hintItem.isEnabled = false
         menu.addItem(hintItem)
 

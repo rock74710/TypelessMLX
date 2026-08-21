@@ -8,6 +8,10 @@ let package = Package(
     ],
     targets: [
         .target(
+            name: "TypelessMLXHotkeySupport",
+            path: "TypelessMLX/HotkeySupport"
+        ),
+        .target(
             name: "TypelessMLXAudioTapSupport",
             path: "TypelessMLX/AudioSupport",
             linkerSettings: [
@@ -21,6 +25,7 @@ let package = Package(
         .executableTarget(
             name: "TypelessMLX",
             dependencies: [
+                "TypelessMLXHotkeySupport",
                 "TypelessMLXAudioTapSupport",
                 "TypelessMLXAudioInputSupport",
                 "TypelessMLXSpeechBackendPolicy"
@@ -44,6 +49,11 @@ let package = Package(
             name: "TypelessMLXAudioInputAvailabilityTests",
             dependencies: ["TypelessMLXAudioInputSupport"],
             path: "TypelessMLX/Tests/AudioInputAvailability"
+        ),
+        .executableTarget(
+            name: "TypelessMLXHotkeySupportTests",
+            dependencies: ["TypelessMLXHotkeySupport"],
+            path: "TypelessMLX/Tests/HotkeySupport"
         ),
         .target(
             name: "TypelessMLXSpeechBackendPolicy",
