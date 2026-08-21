@@ -1,7 +1,7 @@
 # TypelessMLX
 
 **macOS 語音聽寫 App** — 按住快捷鍵說話，文字自動打入當前視窗。  
-使用 [MLX Whisper](https://github.com/ml-explore/mlx-examples) 在 Apple Silicon 上做完全離線推理，預設使用 mac 語音辨識，設定中有採用台灣中文優化的 [Breeze-ASR-25](https://huggingface.co/MediaTek-Research/Breeze-ASR-25) 模型。
+提供 macOS 原生語音辨識快速模式，以及使用 [MLX Whisper](https://github.com/ml-explore/mlx-examples) 在 Apple Silicon 上完全離線推理的高精度模式；設定中可選用台灣中文優化的 [Breeze-ASR-25](https://huggingface.co/MediaTek-Research/Breeze-ASR-25) 模型。
 
 >會設計的原因是市面上常見的產品都是使用Whisper ，而我將目前台灣中文友善的breeze 且轉成MLX格式後做為主力引擎，使用且配合 Apple Intelligence做輕度修正。大概能做速度最佳化都弄上去．
 
@@ -10,15 +10,15 @@
 ## 功能特色
 
 - 🎙️ **一鍵聽寫**：按右 Option（可自訂）開始/停止錄音，自動貼入游標位置
-- 🇹🇼 **台灣中文優化**：使用Mac 語音辨識，可選擇 Breeze-ASR-25 模型，繁體中文效果最佳
+- ⚡ **雙模式辨識**：macOS 原生語音辨識提供快速模式；Breeze-ASR-25 提供台灣中英高精度模式
 - ✏️ **自動標點符號**：語音辨識後自動補上逗號、句號、問號等標點
 - 🤖 **AI 文字修正**（選用）：macOS 26+ 可啟用 Apple Intelligence 進一步精煉標點與語句
-- 🔌 **完全離線**：所有推理在本機完成，無任何資料上傳
+- 🔌 **本機優先**：macOS 26+ 新 Speech API 與 MLX 模型在本機推理；舊系統相容模式由 Apple Speech 服務決定是否需要連線
 - 🎛️ **多模型支援**：
-  - Breeze-ASR-25（台灣中文，預設）
+  - Breeze-ASR-25（台灣中英高精度）
   - Qwen3-ASR-0.6B（中文精度最佳，推薦）
   - Whisper Large v3 / Medium / Small（多語言）
-  - macOS 內建語音辨識（無需 Python）
+  - macOS 原生語音辨識（無需 Python；26+ 新 API／相容模式自動路由）
 - 🗑️ **語助詞過濾**（選用）：自動移除「呃」「嗯」等猶豫音
 - 📋 **聽寫歷史**：保留最近 N 筆紀錄，可一鍵複製
 - 🌙 **系統選單列 App**：輕量常駐，不佔 Dock
@@ -29,7 +29,7 @@
 
 | 項目 | 最低需求 |
 |------|---------|
-| macOS | 13.0 Ventura（建議 macOS 26+ 以使用 AI 文字修正） |
+| macOS | 13.0 Ventura（macOS 26+ 優先使用新 Speech API） |
 | 硬體 | Apple Silicon（M1 或以上，fp16 加速） |
 | 磁碟 | ~500 MB（Python venv） + 模型大小（見下表） |
 | Python | 由 App 自動安裝，無需手動設定 |
@@ -38,9 +38,9 @@
 
 | 模型 | 大小 | 說明 |
 |------|------|------|
-| macOS 內建 | 0 MB | **預設**，免下載，立即可用 |
+| macOS 原生語音辨識 | 0 MB | 快速模式；26+ 優先新 API，不支援時自動使用相容模式 |
 | Qwen3-ASR-0.6B | ~1 GB | 直接從 HuggingFace 下載，中文精度最佳 |
-| Breeze-ASR-25 | ~1.8 GB | 直接從 HuggingFace 下載，台灣中文優化 |
+| Breeze-ASR-25 | ~2.9 GB | 直接從 HuggingFace 下載，台灣中文優化 |
 | Whisper Large v3 | ~3.1 GB | 多語言最高精度 |
 | Whisper Medium | ~1.5 GB | 多語言中等 |
 | Whisper Small | ~465 MB | 多語言最快 |
@@ -57,8 +57,9 @@
 1. 建立 Python venv
 2. 安裝 mlx-whisper 等相依套件（約 1–2 分鐘）
 
-預設使用 macOS 內建語音辨識，**無需下載任何模型即可立即使用**。
-如需更高精度，可在設定中切換至 Qwen3-ASR 或 Breeze-ASR-25，首次選用時會自動從 HuggingFace 下載。
+快速模式使用 macOS 原生語音辨識，**一般情況無需下載模型即可立即使用**。在 macOS 26 以上，系統會在能力、請求語系與 Speech asset 都符合時優先使用新的 `SpeechAnalyzer`／`SpeechTranscriber`；若版本、精確 locale（例如 `zh-TW`）、asset 或推論不支援，會在 runtime 自動回退相容模式，仍可完成聽寫。
+
+如需台灣中英高精度，可在設定中切換至 Qwen3-ASR 或 Breeze-ASR-25，首次選用時會自動從 HuggingFace 下載。
 
 ### 方法二：從原始碼編譯
 
@@ -107,9 +108,10 @@ export SIGN_IDENTITY="Apple Development: Your Name (TEAMID)"
 按快捷鍵 (Right Option)
     └─ HotkeyManager (NSEvent.flagsChanged)
         └─ AudioRecorder (AVAudioEngine, WAV)
-            └─ WhisperBridge (stdin/stdout JSON-RPC)
-                └─ transcribe_server.py
-                    └─ mlx_whisper / mlx_audio (本機推理)
+            ├─ macOS 26+：SpeechAnalyzer + SpeechTranscriber（精確 locale／asset 可用時）
+            ├─ macOS 13–25 或不支援時：SFSpeechRecognizer 相容模式
+            └─ Breeze / Qwen / Whisper：WhisperBridge → transcribe_server.py
+                └─ mlx_whisper / mlx_audio（本機推理）
                 └─ TextRefiner (Apple Intelligence, 選用)
             └─ TextPaster (NSPasteboard + CGEvent Cmd+V)
 ```
@@ -130,7 +132,11 @@ TypelessMLX/
     StatusBarController.swift   # 選單列圖示
     SettingsView.swift          # 偏好設定視窗
     SetupWindowController.swift # 首次安裝流程
+    ModernSpeechTranscriber.swift # macOS 26+ SpeechAnalyzer final backend
     Logger.swift                # 日誌 (~/Library/Logs/TypelessMLX/)
+
+  SpeechBackendPolicy/
+    SpeechBackendPolicy.swift   # 精確 locale、context 與 backend fallback 純邏輯
 
 backend/
   transcribe_server.py          # 持久化 JSON-RPC Python server

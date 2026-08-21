@@ -77,10 +77,24 @@ struct GeneralSettingsTab: View {
                     Spacer()
                     PermissionBadge(granted: AXIsProcessTrusted())
                 }
-                HStack {
-                    Text("Python 後端")
-                    Spacer()
-                    PermissionBadge(granted: appState.hasPythonBackend)
+                if appState.requiresPythonBackend {
+                    HStack {
+                        Text("Python 後端")
+                        Spacer()
+                        PermissionBadge(granted: appState.hasPythonBackend)
+                    }
+                } else {
+                    HStack {
+                        Text("macOS 語音辨識")
+                        Spacer()
+                        Text("自動路由")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    Text(nativeSpeechStatusText)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
                 Button("開啟系統設定") {
                     NSWorkspace.shared.open(URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy")!)
@@ -114,6 +128,13 @@ struct GeneralSettingsTab: View {
         case 58: return "Left ⌥ Option"
         default: return "Key \(appState.hotkeyKeyCode)"
         }
+    }
+
+    private var nativeSpeechStatusText: String {
+        if #available(macOS 26, *) {
+            return "macOS 26+ 優先使用新的 Speech API；若語系、系統能力或資產不支援，會自動切換相容模式。"
+        }
+        return "此 macOS 版本使用相容模式；升級至 macOS 26+ 後會優先使用新的 Speech API。"
     }
 
     private func setLaunchAtLogin(_ enabled: Bool) {
@@ -339,7 +360,7 @@ struct ModelSettingsTab: View {
             }
 
             Section(header: Text("自訂詞典"),
-                    footer: Text("一行一個詞，辨識時自動注入提示詞提升精度（例：專有名詞、品牌名稱、縮寫）")) {
+                    footer: Text("一行一個詞，辨識時自動注入提示詞提升精度（例：專有名詞、品牌名稱、縮寫）。原生 macOS 語音路由最多使用 40 個詞，每詞最多 80 字元。")) {
                 TextEditor(text: $dictionaryTerms)
                     .font(.body.monospaced())
                     .frame(height: 80)

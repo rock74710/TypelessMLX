@@ -1,6 +1,13 @@
 import Cocoa
 import Carbon
 
+/// Guards coordinator cleanup when a backend (or a backend fallback) happens
+/// to deliver more than one callback for the same audio file.
+private final class TranscriptionCompletionGate {
+    let lock = NSLock()
+    var delivered = false
+}
+
 class HotkeyManager {
     static let shared = HotkeyManager()
 
@@ -172,6 +179,10 @@ class HotkeyManager {
     private func stopRecordingAndTranscribe() {
         guard let appState = appState else { return }
 
+        // Capture this at the coordinator boundary so the final latency log
+        // includes audio finalization as well as ASR routing/inference.
+        let keyUpTime = Date()
+
         lock.lock()
         guard isRecording else {
             lock.unlock()
@@ -220,8 +231,32 @@ class HotkeyManager {
 
             let language = appState.language == "auto" ? nil : appState.language
 
+            // A backend fallback must not make the coordinator process the
+            // same result twice. SpeechStreamer also guards its own fallback,
+            // but this gate keeps cleanup, history and paste idempotent if a
+            // backend callback is ever delivered more than once.
+            let completionGate = TranscriptionCompletionGate()
+            let routingStartTime = Date()
+            let routeModel = appState.selectedModel
+
             let handleResult: (Result<String, Error>) -> Void = { [weak self] result in
                 guard let self = self else { return }
+
+                completionGate.lock.lock()
+                guard !completionGate.delivered else {
+                    completionGate.lock.unlock()
+                    logWarn("HotkeyManager", "Ignoring duplicate transcription completion")
+                    return
+                }
+                completionGate.delivered = true
+                completionGate.lock.unlock()
+
+                let keyUpToFinal = Date().timeIntervalSince(keyUpTime)
+                let routingElapsed = Date().timeIntervalSince(routingStartTime)
+                logInfo(
+                    "HotkeyManager",
+                    "Final result telemetry: model=\(routeModel.id) keyUpToFinal=\(String(format: "%.3f", keyUpToFinal))s routing=\(String(format: "%.3f", routingElapsed))s"
+                )
                 try? FileManager.default.removeItem(at: audioURL)
 
                 DispatchQueue.main.async {
@@ -265,12 +300,25 @@ class HotkeyManager {
             }
 
             // Route to correct ASR backend
-            if appState.selectedModel.modelType == "macos" {
-                logInfo("HotkeyManager", "Using macOS built-in ASR")
-                SpeechStreamer.shared.transcribe(audioURL: audioURL, language: language, completion: handleResult)
+            if routeModel.modelType == "macos" {
+                let contextualStrings = appState.nativeSpeechContextualStrings
+                let locale = SpeechStreamer.locale(for: language).identifier
+                logInfo(
+                    "HotkeyManager",
+                    "Routing start: backend=macos-speech(auto modern/legacy) locale=\(locale) contextualStrings=\(contextualStrings.count)"
+                )
+                SpeechStreamer.shared.transcribe(
+                    audioURL: audioURL,
+                    language: language,
+                    contextualStrings: contextualStrings,
+                    completion: handleResult
+                )
             } else {
                 let model = appState.resolvedModelPath
-                logInfo("HotkeyManager", "Sending to WhisperBridge. Model: \(model.split(separator: "/").last ?? Substring(model))")
+                logInfo(
+                    "HotkeyManager",
+                    "Routing start: backend=python model=\(routeModel.id) path=\(model.split(separator: "/").last ?? Substring(model))"
+                )
                 WhisperBridge.shared.transcribe(audioURL: audioURL, model: model, language: language, completion: handleResult)
             }
         }

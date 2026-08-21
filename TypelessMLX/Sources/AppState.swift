@@ -1,6 +1,7 @@
 import SwiftUI
 import Combine
 import AVFoundation
+import TypelessMLXSpeechBackendPolicy
 
 enum AppStatus: String {
     case idle = "待機中"
@@ -50,10 +51,27 @@ class AppState: ObservableObject {
     @Published var permissionState: PermissionState = .missingPermissions
     @Published var hasMicPermission: Bool = false
     @Published var hasAccessibilityPermission: Bool = false
-    @Published var hasPythonBackend: Bool = false
+    @Published var hasPythonBackend: Bool = false {
+        didSet {
+            guard oldValue != hasPythonBackend else { return }
+            updatePermissionState()
+        }
+    }
+
+    /// Whether the selected model needs the Python/MLX process. The native
+    /// macOS speech route deliberately does not depend on that process being
+    /// installed or running.
+    var requiresPythonBackend: Bool {
+        selectedModel.modelType != "macos"
+    }
 
     // Settings (persisted via AppStorage)
-    @AppStorage("selectedModelID") var selectedModelID: String = "macos-speech"
+    @AppStorage("selectedModelID") var selectedModelID: String = "macos-speech" {
+        didSet {
+            guard oldValue != selectedModelID else { return }
+            updatePermissionState()
+        }
+    }
     @AppStorage("showFloatingOverlay") var showFloatingOverlay: Bool = true
     @AppStorage("playSounds") var playSounds: Bool = false
     @AppStorage("launchAtLogin") var launchAtLogin: Bool = false
@@ -74,7 +92,7 @@ class AppState: ObservableObject {
         MLXModel(
             id: "macos-speech",
             repoOrPath: "",
-            description: "macOS 內建語音辨識（快速、不需下載、不需 Python）",
+            description: "macOS 新語音辨識（26+）／相容模式（不需下載、不需 Python）",
             isLocal: true, modelType: "macos"
         ),
         MLXModel(
@@ -86,7 +104,7 @@ class AppState: ObservableObject {
         MLXModel(
             id: "breeze-asr-25",
             repoOrPath: "schsu/breeze-asr-25-mlx",
-            description: "Breeze-ASR-25（台灣中文優化，MediaTek Research，~1.8GB）",
+            description: "Breeze-ASR-25（台灣中文優化，MediaTek Research，~2.9GB）",
             isLocal: false, modelType: "whisper"
         ),
         MLXModel(
@@ -111,6 +129,17 @@ class AppState: ObservableObject {
 
     var selectedModel: MLXModel {
         Self.availableModels.first { $0.id == selectedModelID } ?? Self.availableModels[0]
+    }
+
+    /// The native speech backend accepts a bounded glossary. Keep the
+    /// normalization here so the same limits apply regardless of which
+    /// native implementation is selected at runtime.
+    var nativeSpeechContextualStrings: [String] {
+        SpeechBackendPolicy.normalizedContextualStrings(
+            DictionaryService.shared.terms,
+            maxCount: 40,
+            maxLength: 80
+        )
     }
 
     /// Resolved model path or HF repo for Python backend
@@ -151,14 +180,18 @@ class AppState: ObservableObject {
     }
 
     func updatePermissionState() {
-        if hasMicPermission && hasAccessibilityPermission && hasPythonBackend {
+        // Python is only a runtime dependency for MLX models. Treating a
+        // missing Python environment as a permission error made the native
+        // macOS route look broken on a fresh installation.
+        let backendReady = !requiresPythonBackend || hasPythonBackend
+        if hasMicPermission && hasAccessibilityPermission && backendReady {
             permissionState = .ready
         } else if !hasMicPermission || !hasAccessibilityPermission {
             permissionState = .missingPermissions
         } else {
             permissionState = .error
         }
-        logInfo("AppState", "Permission state: \(permissionState.rawValue) [mic=\(hasMicPermission) ax=\(hasAccessibilityPermission) python=\(hasPythonBackend)]")
+        logInfo("AppState", "Permission state: \(permissionState.rawValue) [mic=\(hasMicPermission) ax=\(hasAccessibilityPermission) python=\(hasPythonBackend) required=\(requiresPythonBackend)]")
     }
 
     func refreshPermissions() {

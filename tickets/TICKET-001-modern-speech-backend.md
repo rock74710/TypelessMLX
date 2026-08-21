@@ -1,5 +1,7 @@
 # TICKET-001：macOS 26 新 Speech final backend
 
+**狀態：✅ 完成**
+
 ## 目標
 
 在保留既有 `SpeechStreamer` 對外介面的前提下，新增 macOS 26+ 的 `SpeechAnalyzer`／`SpeechTranscriber` 檔案辨識路徑；任何能力、locale、asset 或執行錯誤都安全回退至既有 `SFSpeechRecognizer`。
@@ -33,4 +35,3 @@
 
 - `TypelessMLX/Sources/ModernSpeechTranscriber.swift`（新增）
 - `TypelessMLX/Sources/SpeechStreamer.swift`
-

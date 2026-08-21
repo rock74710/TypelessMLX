@@ -48,6 +48,14 @@ class StatusBarController {
                 self?.showNotification(title: "TypelessMLX", body: message)
             }
             .store(in: &cancellables)
+
+        // Model and routing settings are persisted through AppStorage rather
+        // than @Published properties. Refresh the menu when those values
+        // change so the native/Python status and model copy stay current.
+        NotificationCenter.default.publisher(for: UserDefaults.didChangeNotification)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in self?.updateMenu() }
+            .store(in: &cancellables)
     }
 
     private func updateIcon(for status: AppStatus) {
@@ -87,7 +95,7 @@ class StatusBarController {
                 item.target = self
                 menu.addItem(item)
             }
-            if !appState.hasPythonBackend {
+            if appState.requiresPythonBackend && !appState.hasPythonBackend {
                 let item = NSMenuItem(title: "  ⚠️ Python 後端：未就緒", action: #selector(showSetup), keyEquivalent: "")
                 item.target = self
                 menu.addItem(item)
@@ -97,7 +105,13 @@ class StatusBarController {
         menu.addItem(NSMenuItem.separator())
 
         // Current model
-        let modelItem = NSMenuItem(title: "模型：\(appState.selectedModel.id)", action: nil, keyEquivalent: "")
+        let modelTitle: String
+        if appState.selectedModel.modelType == "macos" {
+            modelTitle = "引擎：macOS 新語音辨識（26+）／相容模式"
+        } else {
+            modelTitle = "模型：\(appState.selectedModel.id)"
+        }
+        let modelItem = NSMenuItem(title: modelTitle, action: nil, keyEquivalent: "")
         modelItem.isEnabled = false
         menu.addItem(modelItem)
 

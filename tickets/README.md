@@ -21,11 +21,18 @@ Apple 引擎不假設所有 Mac 都支援 `zh-TW`。程式必須在 runtime 檢�
 
 ## Tickets
 
-| Ticket | 內容 | 相依性 |
-|---|---|---|
-| [TICKET-001](TICKET-001-modern-speech-backend.md) | macOS 26 新 Speech final backend 與 legacy fallback | 無 |
-| [TICKET-002](TICKET-002-routing-context-and-telemetry.md) | App 路由、contextual glossary、設定與 telemetry | TICKET-001 的介面 |
-| [TICKET-003](TICKET-003-tests-docs-and-release.md) | 測試、文件、相容性驗證與交付 | TICKET-001、002 |
+| Ticket | 內容 | 相依性 | 狀態 |
+|---|---|---|---|
+| [TICKET-001](TICKET-001-modern-speech-backend.md) | macOS 26 新 Speech final backend 與 legacy fallback | 無 | ✅ 完成 |
+| [TICKET-002](TICKET-002-routing-context-and-telemetry.md) | App 路由、contextual glossary、設定與 telemetry | TICKET-001 的介面 | ✅ 完成 |
+| [TICKET-003](TICKET-003-tests-docs-and-release.md) | 測試、文件、相容性驗證與交付 | TICKET-001、002 | ✅ 完成 |
+
+## 驗證紀錄
+
+- `SpeechTranscriber.isAvailable == true`（本機 macOS 27 測試環境）。
+- `SpeechTranscriber.supportedLocales` 與 `installedLocales` 均包含精確 `zh_TW`。
+- 使用 8.74 秒中英混合合成音訊成功取得新 API final result。
+- Release build、Speech backend policy tests、AudioTap format tests、AudioInput availability tests 全部通過。
 
 ## 後續非本輪範圍
 
@@ -33,4 +40,3 @@ Apple 引擎不假設所有 Mac 都支援 `zh-TW`。程式必須在 runtime 檢�
 - Breeze 8-bit／6-bit／hybrid 量化。
 - 台灣中英混用真實語料 benchmark 與自動 regression gate。
 - WAV writer completion、paste coordinator 與 Python model lifecycle 重構。
-

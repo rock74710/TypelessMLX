@@ -1,5 +1,7 @@
 # TICKET-003：測試、文件與交付驗證
 
+**狀態：✅ 完成**
+
 ## 目標
 
 為 modern/legacy backend 選擇建立可離線測試的純邏輯層，並更新使用者與開發文件。
@@ -24,9 +26,8 @@
 
 ## 檔案所有權
 
-- `TypelessMLX/Sources/SpeechBackendPolicy.swift`（新增；與 TICKET-001 協調介面）
+- `TypelessMLX/SpeechBackendPolicy/SpeechBackendPolicy.swift`（新增；與 TICKET-001 協調介面）
 - `TypelessMLX/Tests/SpeechBackendPolicy/main.swift`（新增）
 - `Package.swift`
 - `README.md`
 - `CHANGELOG.md`
-

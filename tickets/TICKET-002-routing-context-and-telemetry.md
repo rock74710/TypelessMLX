@@ -1,5 +1,7 @@
 # TICKET-002：路由、Context 與 Telemetry
 
+**狀態：✅ 完成**
+
 ## 目標
 
 讓快速模式的產品文案、字典 context 與效能 log 對應新的 Apple backend，同時維持 Breeze 高精度模式。
@@ -27,4 +29,3 @@
 - `TypelessMLX/Sources/HotkeyManager.swift`
 - `TypelessMLX/Sources/SettingsView.swift`
 - `TypelessMLX/Sources/StatusBarController.swift`（如確有需要）
-
