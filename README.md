@@ -10,12 +10,12 @@
 ## 功能特色
 
 - 🎙️ **一鍵聽寫**：按右 Option（可自訂）開始/停止錄音，自動貼入游標位置
-- ⚡ **雙模式辨識**：macOS 原生語音辨識提供快速模式；Breeze-ASR-25 提供台灣中英高精度模式
+- ⚡ **雙模式辨識**：macOS 原生語音辨識提供快速模式；Breeze-ASR-25 8-bit 提供台灣中英高精度模式
 - ✏️ **自動標點符號**：語音辨識後自動補上逗號、句號、問號等標點
 - 🤖 **AI 文字修正**（選用）：macOS 26+ 可啟用 Apple Intelligence 進一步精煉標點與語句
 - 🔌 **本機優先**：macOS 26+ 新 Speech API 與 MLX 模型在本機推理；舊系統相容模式由 Apple Speech 服務決定是否需要連線
 - 🎛️ **多模型支援**：
-  - Breeze-ASR-25（台灣中英高精度）
+  - Breeze-ASR-25 8-bit（台灣中英高精度；FP16 相容 fallback）
   - Qwen3-ASR-0.6B（中文精度最佳，推薦）
   - Whisper Large v3 / Medium / Small（多語言）
   - macOS 原生語音辨識（無需 Python；26+ 新 API／相容模式自動路由）
@@ -40,7 +40,7 @@
 |------|------|------|
 | macOS 原生語音辨識 | 0 MB | 快速模式；26+ 優先新 API，不支援時自動使用相容模式 |
 | Qwen3-ASR-0.6B | ~1 GB | 直接從 HuggingFace 下載，中文精度最佳 |
-| Breeze-ASR-25 | ~2.9 GB | 直接從 HuggingFace 下載，台灣中文優化 |
+| Breeze-ASR-25 8-bit | ~1.5 GB | 優先使用本機量化 artifact；缺少時沿用舊 FP16 或既有 HF repo |
 | Whisper Large v3 | ~3.1 GB | 多語言最高精度 |
 | Whisper Medium | ~1.5 GB | 多語言中等 |
 | Whisper Small | ~465 MB | 多語言最快 |
@@ -59,7 +59,22 @@
 
 快速模式使用 macOS 原生語音辨識，**一般情況無需下載模型即可立即使用**。在 macOS 26 以上，系統會在能力、請求語系與 Speech asset 都符合時優先使用新的 `SpeechAnalyzer`／`SpeechTranscriber`；若版本、精確 locale（例如 `zh-TW`）、asset 或推論不支援，會在 runtime 自動回退相容模式，仍可完成聽寫。
 
-如需台灣中英高精度，可在設定中切換至 Qwen3-ASR 或 Breeze-ASR-25，首次選用時會自動從 HuggingFace 下載。
+如需台灣中英高精度，可在設定中切換至 Qwen3-ASR 或 Breeze-ASR-25。Breeze 會依序使用
+`~/.local/share/typelessmlx/models/breeze-asr-25-mlx-8bit`、既有的
+`~/.local/share/typelessmlx/models/breeze-asr-25-mlx`，最後才使用既有
+`schsu/breeze-asr-25-mlx` HF repo；因此既有 FP16 使用者不需要重新下載。
+
+量化 artifact 不會提交到 repository。若要從 canonical FP16 來源重現 8-bit 版本，請在已安裝
+TypelessMLX venv 的機器上依序執行：
+
+```bash
+"$HOME/.local/share/typelessmlx/venv/bin/python" \
+  benchmarks/breeze_quant/quantize_models.py \
+  --source ~/.local/share/typelessmlx/models/breeze-asr-25-mlx
+```
+
+腳本會產生 `breeze-asr-25-mlx-8bit`、`breeze-asr-25-mlx-6bit` 與 hybrid artifact，並驗證
+`mlx-whisper 0.4.3` loader 與短音訊 smoke test；App 正式預設只選用 8-bit artifact。
 
 ### 方法二：從原始碼編譯
 
@@ -182,7 +197,9 @@ A: 這是 macOS 26 啟用 Apple Intelligence 時的系統提示，**可以拒絕
 A: 在英文輸入法下剪貼簿可能自動加空格，可切換至中文輸入法後再試。
 
 **Q: Breeze-ASR-25 或 Qwen3-ASR 下載失敗？**  
-A: 請確認網路連線正常。這兩個模型都是公開的 HuggingFace repo，無需帳號或 Token。若持續失敗可嘗試手動執行：`hf download schsu/breeze-asr-25-mlx`。
+A: Breeze 會先使用本機 8-bit 或既有 FP16 artifact；若兩者都不存在，才需要連線使用公開的
+`schsu/breeze-asr-25-mlx` repo。Qwen3 則可確認網路連線後重試；必要時可手動執行：
+`hf download schsu/breeze-asr-25-mlx`。
 
 **Q: 下載後出現「無法驗證開發者」或「可能有害」警告？**
 

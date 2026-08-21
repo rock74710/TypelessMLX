@@ -145,6 +145,17 @@ sys.stdout.flush()
 
     /// Returns the root cache directory for the model (nil if not applicable).
     private func cacheDirectory(for model: MLXModel) -> URL? {
+        // Breeze keeps a stable model ID while preferring the validated local
+        // 8-bit artifact. Report and delete the artifact the app will actually
+        // load, then fall back through the legacy FP16 directory to HF cache.
+        if model.id == AppState.breezeModelID {
+            if AppState.isUsableModelDirectory(AppState.breeze8BitModelURL) {
+                return AppState.breeze8BitModelURL
+            }
+            if AppState.isUsableModelDirectory(AppState.breezeFP16ModelURL) {
+                return AppState.breezeFP16ModelURL
+            }
+        }
         if model.isLocal {
             return URL(fileURLWithPath: model.repoOrPath)
         }
@@ -156,7 +167,9 @@ sys.stdout.flush()
 
     private func diskSize(for model: MLXModel) -> Int64 {
         guard let dir = cacheDirectory(for: model) else { return 0 }
-        if model.isLocal {
+        let isResolvedBreezeLocalArtifact = model.id == AppState.breezeModelID
+            && (dir == AppState.breeze8BitModelURL || dir == AppState.breezeFP16ModelURL)
+        if model.isLocal || isResolvedBreezeLocalArtifact {
             guard FileManager.default.fileExists(atPath: dir.path) else { return 0 }
             return directorySize(dir)
         }

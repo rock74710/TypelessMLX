@@ -43,6 +43,24 @@ struct MLXModel: Identifiable {
 class AppState: ObservableObject {
     static let shared = AppState()
 
+    // Breeze remains one stable user-facing model ID while its preferred
+    // artifact moves from the original FP16 directory to the validated local
+    // 8-bit artifact.  Keep the old path as a compatibility fallback for
+    // existing installations; the remote repo is the final fallback for a
+    // machine that has neither local artifact.
+    static let breezeModelID = "breeze-asr-25"
+    static let breezeRemoteRepo = "schsu/breeze-asr-25-mlx"
+    static let breeze8BitModelURL: URL = FileManager.default.homeDirectoryForCurrentUser
+        .appendingPathComponent(".local/share/typelessmlx/models/breeze-asr-25-mlx-8bit")
+    static let breezeFP16ModelURL: URL = FileManager.default.homeDirectoryForCurrentUser
+        .appendingPathComponent(".local/share/typelessmlx/models/breeze-asr-25-mlx")
+
+    static func isUsableModelDirectory(_ url: URL) -> Bool {
+        let fileManager = FileManager.default
+        return fileManager.fileExists(atPath: url.appendingPathComponent("config.json").path)
+            && fileManager.fileExists(atPath: url.appendingPathComponent("weights.safetensors").path)
+    }
+
     @Published var status: AppStatus = .idle {
         didSet { logInfo("AppState", "Status: \(oldValue.rawValue) → \(status.rawValue)") }
     }
@@ -102,9 +120,9 @@ class AppState: ObservableObject {
             isLocal: false, modelType: "qwen3"
         ),
         MLXModel(
-            id: "breeze-asr-25",
-            repoOrPath: "schsu/breeze-asr-25-mlx",
-            description: "Breeze-ASR-25（台灣中文優化，MediaTek Research，~2.9GB）",
+            id: breezeModelID,
+            repoOrPath: breezeRemoteRepo,
+            description: "Breeze-ASR-25 8-bit（台灣中文優化，約 1.5GB；舊 FP16 相容）",
             isLocal: false, modelType: "whisper"
         ),
         MLXModel(
@@ -145,12 +163,32 @@ class AppState: ObservableObject {
     /// Resolved model path or HF repo for Python backend
     var resolvedModelPath: String {
         let model = selectedModel
+        if model.id == Self.breezeModelID {
+            if Self.isUsableModelDirectory(Self.breeze8BitModelURL) {
+                logInfo(
+                    "AppState",
+                    "Using Breeze 8-bit artifact at \(Self.breeze8BitModelURL.path)"
+                )
+                return Self.breeze8BitModelURL.path
+            }
+            if Self.isUsableModelDirectory(Self.breezeFP16ModelURL) {
+                logWarn(
+                    "AppState",
+                    "Breeze 8-bit artifact unavailable; using legacy FP16 model at \(Self.breezeFP16ModelURL.path)"
+                )
+                return Self.breezeFP16ModelURL.path
+            }
+            logWarn(
+                "AppState",
+                "Breeze local artifacts unavailable; using existing HF repo \(Self.breezeRemoteRepo)"
+            )
+            return Self.breezeRemoteRepo
+        }
         if model.isLocal {
-            // Check if local conversion exists; if not, fall back to whisper-large-v3
             if FileManager.default.fileExists(atPath: model.repoOrPath) {
                 return model.repoOrPath
             } else {
-                logWarn("AppState", "Breeze-ASR-25 local model not found, falling back to whisper-large-v3")
+                logWarn("AppState", "Local model not found, falling back to whisper-large-v3")
                 return "mlx-community/whisper-large-v3-mlx"
             }
         }

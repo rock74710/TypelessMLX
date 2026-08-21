@@ -14,5 +14,6 @@
   - 載入期間 overlay 顯示「⏳ 載入模型中...」
 
 ### 改善
+- **Breeze 預設 artifact**：Breeze 維持 `breeze-asr-25` model ID，優先使用本機 affine 8-bit artifact（group size 64）；缺少時依序回退既有 FP16 local artifact 與 `schsu/breeze-asr-25-mlx` HF repo，既有使用者不需重新下載。
 - 文字修正（TextRefiner）預設開啟（需 macOS 26+）
 - 若 Whisper 已輸出帶標點文字，自動跳過 TextRefiner 以節省時間

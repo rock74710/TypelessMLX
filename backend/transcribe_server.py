@@ -31,9 +31,24 @@ def ensure_trailing_punctuation(text: str) -> str:
         return text + '。'
     return text
 
-# Default model: local MLX-converted Breeze-ASR-25; fallback to HF repo
-DEFAULT_MODEL = os.path.expanduser("~/.local/share/typelessmlx/models/breeze-asr-25-mlx")
-FALLBACK_MODEL = "mlx-community/whisper-large-v3-mlx"
+# Prefer the validated local Breeze 8-bit artifact.  Keep the original FP16
+# directory and the existing HF repo as compatibility fallbacks so an
+# installation that predates the quantized artifact keeps working.
+BREEZE_8BIT_MODEL = os.path.expanduser(
+    "~/.local/share/typelessmlx/models/breeze-asr-25-mlx-8bit"
+)
+BREEZE_FP16_MODEL = os.path.expanduser(
+    "~/.local/share/typelessmlx/models/breeze-asr-25-mlx"
+)
+BREEZE_REMOTE_MODEL = "schsu/breeze-asr-25-mlx"
+DEFAULT_MODEL = BREEZE_8BIT_MODEL
+FALLBACK_MODEL = BREEZE_REMOTE_MODEL
+
+
+def _is_usable_model(path: str) -> bool:
+    return os.path.isfile(os.path.join(path, "config.json")) and os.path.isfile(
+        os.path.join(path, "weights.safetensors")
+    )
 
 
 def running_on_apple_silicon() -> bool:
@@ -87,7 +102,9 @@ def transcribe(audio_path: str, model_path: str, language: str | None,
     import mlx_whisper
     use_fp16 = model_type == "whisper" and running_on_apple_silicon()
     if use_fp16:
-        sys.stderr.write("[TypelessMLX] Apple Silicon detected, enabling fp16\n")
+        sys.stderr.write(
+            "[TypelessMLX] Apple Silicon detected, using fp16 compute for non-quantized operations\n"
+        )
         sys.stderr.flush()
     result = mlx_whisper.transcribe(
         audio_path,
@@ -104,11 +121,28 @@ def transcribe(audio_path: str, model_path: str, language: str | None,
 
 
 def resolve_model(requested: str | None) -> str:
-    if requested and requested.strip():
-        return requested.strip()
-    # Use local Breeze-ASR-25 if converted, else fallback
-    if os.path.isdir(DEFAULT_MODEL):
+    requested = requested.strip() if requested else ""
+    # Requests for either known Breeze local path are resolved through the
+    # same compatibility chain. Other model IDs/paths remain untouched.
+    known_local_paths = {DEFAULT_MODEL, BREEZE_FP16_MODEL}
+    if requested and requested not in known_local_paths:
+        return requested
+    if _is_usable_model(DEFAULT_MODEL):
+        sys.stderr.write(
+            f"[TypelessMLX] Using Breeze 8-bit artifact: {DEFAULT_MODEL}\n"
+        )
+        sys.stderr.flush()
         return DEFAULT_MODEL
+    if _is_usable_model(BREEZE_FP16_MODEL):
+        sys.stderr.write(
+            "[TypelessMLX] Breeze 8-bit artifact unavailable; using legacy FP16 model\n"
+        )
+        sys.stderr.flush()
+        return BREEZE_FP16_MODEL
+    sys.stderr.write(
+        "[TypelessMLX] Breeze local artifacts unavailable; using existing HF repo\n"
+    )
+    sys.stderr.flush()
     return FALLBACK_MODEL
 
 
@@ -116,7 +150,7 @@ def main():
     # Signal Swift that we're ready
     send({"status": "ready"})
     sys.stderr.write("[TypelessMLX] Python backend ready\n")
-    sys.stderr.write(f"[TypelessMLX] Inference precision: {'fp16' if running_on_apple_silicon() else 'fp32'} (arch: {platform.machine()})\n")
+    sys.stderr.write(f"[TypelessMLX] Whisper compute dtype: {'fp16' if running_on_apple_silicon() else 'fp32'} (quantized weight metadata is model-specific, arch: {platform.machine()})\n")
     sys.stderr.flush()
 
     for raw_line in sys.stdin:

@@ -180,3 +180,15 @@ DEVELOPER_DIR=/Applications/Xcode-beta.app/Contents/Developer swift build -c rel
 - **低記憶體模式**：4-bit，清楚標示短句漏字風險。
 
 目前不建議直接把 Breeze FP16 全面替換成 4-bit。若要先推出一個平衡模式，這輪實測支持從 8-bit 開始；正式上線前仍需使用台灣真人與產品麥克風語料完成 gate。
+
+## Breeze 8-bit 正式預設（TypelessMLX）
+
+已將 App 與 Python backend 的 Breeze 解析順序統一為：
+
+1. `~/.local/share/typelessmlx/models/breeze-asr-25-mlx-8bit`（canonical affine 8-bit，group size 64）。
+2. `~/.local/share/typelessmlx/models/breeze-asr-25-mlx`（既有 FP16 相容路徑）。
+3. `schsu/breeze-asr-25-mlx`（既有 HF repo；不假設尚未發布的 8-bit repo）。
+
+`selectedModelID` 保持 `breeze-asr-25` 不變，因此既有設定不需 migration；若 8-bit artifact 缺少，AppState 與 backend 都會記錄明確 fallback log，不會讓既有 FP16 使用者無提示失效。大型量化權重不提交到 repository；可用 `benchmarks/breeze_quant/quantize_models.py` 從 canonical FP16 來源重現。
+
+`ModelManager` 的快取大小與刪除目標也使用相同解析順序，避免畫面顯示 HF／FP16 快取大小，但實際推論載入本機 8-bit artifact。Python 啟動訊息將 `fp16` 明確標為非量化運算的 compute dtype；每次 Breeze 解析則另行記錄實際 artifact 路徑。
