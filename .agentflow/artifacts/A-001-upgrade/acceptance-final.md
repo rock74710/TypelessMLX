@@ -1,4 +1,4 @@
-2026-11-05 13:43:48 +0800 | gpt-6.1-sol / low
+* _2026-11-05 13:43:48 +0800 (gpt-6.1-sol/low)_
 
 Reviewed implementation commit: e14a1c3be57e436c8f5b1e5bbc43d3c15e17dd88
 

@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>TypelessMLX 升級實作紀錄</title><style>body{margin:0;background:#f3f6fa;color:#243248;font:17px/1.75 system-ui,sans-serif}main{max-width:1050px;margin:auto;padding:30px 22px}section{margin:18px 0;padding:22px;background:white;border:1px solid #d5dfeb;border-radius:12px}h1,h2{line-height:1.35;color:#163454}table{width:100%;border-collapse:collapse;font-size:15px}td,th{padding:10px;border:1px solid #d5dfeb;text-align:left;vertical-align:top}th{background:#e8f0f8}code{background:#eef2f6;padding:2px 5px}a{color:#075da8}.note{border-left:5px solid #b57713}li{margin:7px 0}@media(max-width:700px){main{padding:18px 12px}section{padding:16px}table{font-size:13px}}</style></head><body><main>
+<h1>TypelessMLX 升級實作紀錄</h1><p>2026-11-05｜沿用 feat/apple-speech-transcriber 分支</p>
+<section id="result"><h2>目前結果</h2><p>A–E 已完成程式整合。集中測試、本機模型載入與最終獨立審查通過。實機及品質評測仍有限制。</p><p>本輪保留原有 Swift、macOS Speech、Whisper 與 Qwen 路由。既有浮動視窗與研究文件修改保持原樣。</p></section>
+<section id="changes"><h2>已加入的行為</h2><table><tr><th>階段</th><th>使用者可見結果</th><th>主要保護</th></tr>
+<tr><td>A｜可靠貼上</td><td>目標改變時，結果留在歷史。提供手動複製。</td><td>重查程序、視窗、欄位及選取範圍。安全輸入會阻擋。剪貼簿還原須符合版本及所有權。</td></tr>
+<tr><td>B｜取消與救援</td><td>Esc 取消錄音或處理。失敗錄音可從歷史重試。</td><td>任務識別隔離晚到結果。一般辨識限 120 秒。重試只產生可檢視結果。</td></tr>
+<tr><td>C｜模型就緒</td><td>模型準備與辨識分開顯示。狀態區分下載、驗證、可用及修復。</td><td>固定遠端版本與來源雜湊。通過檔案及載入檢查後，才記錄可用。</td></tr>
+<tr><td>D｜輸入增益</td><td>設定提供 −6 至 +12 dB，每格 3 dB。可回到 0 dB。</td><td>分流前只處理一次。寫檔、預覽與音量顯示使用同一結果。削波時提示降低增益。</td></tr>
+<tr><td>E｜人工錯詞對照</td><td>從歷史新增對照。可停用、刪除及撤銷。可複製或還原原文。</td><td>最長符合、單次替換。英文比對有詞邊界。中文規則需確認。整理改義或逾時時回退。</td></tr></table>
+<p>「已送出貼上事件」只代表事件已送出，不代表目標已接收。事件送出後不自動重試。</p></section>
+<section id="recovery"><h2>錄音保存規則</h2><p>只保存辨識失敗的錄音。預設上限為 24 小時、10 筆或 200 MB。先達上限時先清理舊檔。</p><p>錄音存在本機 App 資料目錄。資料夾權限為 0700，檔案權限為 0600。啟動時會清理過期資料。</p><p>取消及成功辨識會刪除錄音。貼上失敗只使用文字救援。關閉保存會立即清除既有救援錄音。</p></section>
+<section id="verification"><h2>驗證紀錄</h2><p>Release build、六個 Swift 可執行目標、後端傳輸與模型介面測試全部通過。十五個 Python 測試通過。測試涵蓋獨立剪貼簿、任務識別、歷史相容、救援清理、增益及詞彙。</p><p>本機 Breeze 8-bit 的準備檢查與實際 MLX 載入通過。App 與 DMG 已建立，並通過 Apple Development 簽章驗證。尚未安裝本次套件。按住模式修正後，已重新建立 App 與 DMG，建置退出碼為 0。</p><p>最終實作提交：<code>e14a1c3</code>。審查確認準備期間放開快捷鍵會取消；晚到回呼不能開始錄音。主代理已核對變更範圍、測試與報告。</p><p>套件：<code>build/TypelessMLX.app</code>；<code>build/TypelessMLX-1.0.3.dmg</code>。</p><p>重跑命令：<code>./scripts/test-upgrade.sh</code>。</p></section>
+<section id="limits" class="note"><h2>尚未取得的實測證據</h2><ul>
+<li>常用 App、全螢幕、實際欄位焦點與安全輸入的完整人工驗收。</li>
+<li>完整 AX 目標擷取與系統貼上事件驗收。自動測試使用自有 NSTextView、獨立剪貼簿與注入事件。</li>
+<li>內建及外接麥克風、裝置拔除、休眠與重新啟動的完整驗收。</li>
+<li>60 段繁中及中英混語音檔的辨識品質比較。</li>
+<li>裝置中斷時的部分錄音救援。本輪只提供辨識失敗錄音救援。</li></ul><p>目前不宣稱改善純氣音，也不把自動測試當成常用 App 已支援的證明。</p></section>
+<section id="use"><h2>驗收操作</h2><ol><li>在自有編輯器開始聽寫。</li><li>辨識期間切換欄位，確認結果留在歷史。</li><li>貼上事件送出後複製其他內容，確認新內容保持不變。</li><li>在錄音及處理階段各按一次 Esc。</li><li>在歷史重試失敗錄音，確認 App 不自動貼上。</li><li>以相同錄音比較 0、+6 及 +12 dB。</li><li>新增、停用、刪除及撤銷錯詞對照。</li></ol></section>
+</main></body></html>
