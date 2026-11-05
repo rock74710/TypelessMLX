@@ -18,6 +18,7 @@ class HotkeyManager {
     private var hotkeyIsPressed = false
     private var lastHotkeyKeyCode: Int?
     private var hotkeyCaptureIsActive = false
+    private var holdHotkeyState = HoldHotkeyState()
     private let lifecycle = DictationLifecycle()
     private var target: PasteTarget?
     private var taskModel: MLXModel?
@@ -136,9 +137,14 @@ class HotkeyManager {
             if mode == "hold" {
                 // Hold-to-talk: press=start, release=stop
                 if isKeyPressed && !currentlyRecording && !processing {
-                    self.startRecording()
-                } else if !isKeyPressed && currentlyRecording {
-                    self.stopRecordingAndTranscribe()
+                    self.startRecording(forHold: true)
+                } else if !isKeyPressed {
+                    let action = self.holdHotkeyState.release()
+                    if action == .cancelPreparation {
+                        self.cancelCurrentTask()
+                    } else if action == .stopRecording || (action == .ignore && currentlyRecording) {
+                        self.stopRecordingAndTranscribe()
+                    }
                 }
             } else {
                 // Toggle mode: each key-down toggles
@@ -154,10 +160,14 @@ class HotkeyManager {
         }
     }
 
-    private func startRecording() {
+    private func startRecording(forHold: Bool = false) {
         guard let appState, appState.status == .idle else { return }
         lock.lock()
         guard !isRecording && !isProcessing else { lock.unlock(); return }
+        if forHold, holdHotkeyState.startPreparation() != .startPreparation {
+            lock.unlock()
+            return
+        }
         isProcessing = true
         lock.unlock()
         let id = lifecycle.begin()
@@ -173,7 +183,7 @@ class HotkeyManager {
         taskGainChanges = [taskGainDB]
         clippingWarning = false
         retrySourceID = nil
-        prepareBackend(id) { [weak self] in self?.beginAudio(id) }
+        prepareBackend(id) { [weak self] in self?.beginAudio(id, forHold: forHold) }
     }
 
     private func prepareBackend(_ id: UUID, ready: @escaping () -> Void) {
@@ -205,8 +215,9 @@ class HotkeyManager {
         }
     }
 
-    private func beginAudio(_ id: UUID) {
+    private func beginAudio(_ id: UUID, forHold: Bool = false) {
         guard let appState, lifecycle.isCurrent(id) else { return }
+        if forHold, holdHotkeyState.preparationCompleted() != .beginRecording { return }
         appState.setStatus(.recording)
         appState.liveTranscriptionConfirmedText = ""
         appState.liveTranscriptionUnconfirmedText = ""
@@ -474,6 +485,7 @@ class HotkeyManager {
         lock.lock()
         isRecording = false; isProcessing = false; recordingStartTime = nil
         lock.unlock()
+        holdHotkeyState.reset()
         taskAudioURL = nil; target = nil; retrySourceID = nil
     }
     deinit {

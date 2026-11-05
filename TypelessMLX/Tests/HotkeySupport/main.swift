@@ -98,8 +98,21 @@ func testModifierFlagRawValueMapping() {
     expect(!empty.option && !empty.command && !empty.control && !empty.shift, "empty flags should be unpressed")
 }
 
+func testHoldReleaseDuringPreparationCancelsLateStart() {
+    var state = HoldHotkeyState()
+    expect(state.startPreparation() == .startPreparation, "hold press should start preparation")
+    expect(state.release() == .cancelPreparation, "release during preparation should cancel it")
+    expect(state.preparationCompleted() == .ignore, "late preparation must not start recording")
+    expect(state.release() == .ignore, "a cancelled hold should not stop a recording")
+
+    expect(state.startPreparation() == .startPreparation, "a new hold should start preparation")
+    expect(state.preparationCompleted() == .beginRecording, "ready preparation should begin recording")
+    expect(state.release() == .stopRecording, "release after recording should stop and transcribe")
+}
+
 testSupportedMappings()
 testInvalidValuesFallBackToRightOption()
 testKeyDownAndKeyUpTransitions()
 testModifierFlagRawValueMapping()
+testHoldReleaseDuringPreparationCancelsLateStart()
 print("TypelessMLXHotkeySupportTests passed")
