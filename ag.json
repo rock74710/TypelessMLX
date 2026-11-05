@@ -1,0 +1,72 @@
+{
+  "schema-version": 8,
+  "switches": {
+    "allow-ag": "on",
+    "allowed-worker": [
+      "external",
+      "internal",
+      "host"
+    ],
+    "ask-names": "on",
+    "auto-reply": "off",
+    "away-gates": "on",
+    "cli-provider": "on",
+    "completion-cleanup": "off",
+    "completion-cleanup-interval-days": 7,
+    "git-timeout-ms": 30000,
+    "inline-reply": "off",
+    "lang": "zh-tw",
+    "large-work-minutes": 120,
+    "log-verbosity": "all",
+    "notebook-ownership": "off",
+    "review-policy": "prefer-independent",
+    "streams": "ask",
+    "target-doc": ".agentflow/devlog.md",
+    "workspace-dir": ".agentflow"
+  },
+  "pipeline-roles": {
+    "requirements": "better",
+    "codewalk": "better",
+    "explore": "better",
+    "spike": "better",
+    "spec": "better",
+    "implementation": "basic",
+    "security-scan": "best",
+    "acceptance": "better",
+    "cross-check": "better",
+    "learn": "basic",
+    "threeways": "better"
+  },
+  "external-workers": [
+    {
+      "id": "codex-default",
+      "command": [
+        "codex",
+        "exec"
+      ],
+      "priority": 3,
+      "family": "codex",
+      "tiers": {
+        "best": "gpt-6-astra/medium",
+        "better": "gpt-6.1-sol/high",
+        "basic": "gpt-6.1-sol/low",
+        "cheap": "gpt-6-luna/high"
+      }
+    },
+    {
+      "id": "claude-default",
+      "command": [
+        "claude",
+        "-p"
+      ],
+      "priority": 3,
+      "family": "claude",
+      "tiers": {
+        "best": "claude-opus-5-5/xhigh",
+        "better": "claude-opus-5-5/high",
+        "basic": "claude-sonnet-5-5/high",
+        "cheap": "haiku/high"
+      }
+    }
+  ]
+}
