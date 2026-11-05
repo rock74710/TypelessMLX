@@ -3,11 +3,16 @@ import Combine
 import AVFoundation
 import TypelessMLXHotkeySupport
 import TypelessMLXSpeechBackendPolicy
+import TypelessMLXWorkflowSupport
+import TypelessMLXAudioTapSupport
 
 enum AppStatus: String {
     case idle = "待機中"
     case recording = "錄音中..."
     case transcribing = "辨識中..."
+    case preparing = "模型準備中..."
+    case refining = "整理中..."
+    case awaitingInput = "等待輸入..."
 }
 
 enum PermissionState: String {
@@ -16,21 +21,7 @@ enum PermissionState: String {
     case error = "🔴 錯誤"
 }
 
-struct TranscriptionEntry: Identifiable, Codable {
-    let id: UUID
-    let text: String
-    let timestamp: Date
-    let duration: TimeInterval
-    let model: String
-
-    init(text: String, duration: TimeInterval, model: String) {
-        self.id = UUID()
-        self.text = text
-        self.timestamp = Date()
-        self.duration = duration
-        self.model = model
-    }
-}
+typealias TranscriptionEntry = TranscriptionRecord
 
 // MLX model definitions
 struct MLXModel: Identifiable {
@@ -57,9 +48,7 @@ class AppState: ObservableObject {
         .appendingPathComponent(".local/share/typelessmlx/models/breeze-asr-25-mlx")
 
     static func isUsableModelDirectory(_ url: URL) -> Bool {
-        let fileManager = FileManager.default
-        return fileManager.fileExists(atPath: url.appendingPathComponent("config.json").path)
-            && fileManager.fileExists(atPath: url.appendingPathComponent("weights.safetensors").path)
+        ModelReadiness.isReady(directoryURL: url, modelID: Self.breezeModelID)
     }
 
     @Published var status: AppStatus = .idle {
@@ -115,6 +104,16 @@ class AppState: ObservableObject {
     @AppStorage("initialPrompt") var initialPrompt: String = ""
     @AppStorage("inputDeviceUID") var inputDeviceUID: String = ""  // empty = system default
     @AppStorage("enableTextRefinement") var enableTextRefinement: Bool = true
+    @AppStorage("inputGainDB") var inputGainDB: Double = 0 {
+        didSet {
+            let normalized = AudioGainProcessor.normalizedGain(inputGainDB)
+            if normalized != inputGainDB { inputGainDB = normalized }
+        }
+    }
+    @AppStorage("retainFailedAudio") var retainFailedAudio: Bool = true {
+        didSet { if !retainFailedAudio { clearRecoveryAudio() } }
+    }
+    @AppStorage("enableVocabularyReplacements") var enableVocabularyReplacements: Bool = true
     @AppStorage("removeFillers") var removeFillers: Bool = false
     // Live transcription text (set by WhisperBridge progress callbacks)
     @Published var liveTranscriptionConfirmedText: String = ""
@@ -225,7 +224,10 @@ class AppState: ObservableObject {
             )
             hotkeyKeyCode = HotkeyDefinition.defaultDefinition.keyCode
         }
+        inputGainDB = AudioGainProcessor.normalizedGain(inputGainDB)
         loadHistory()
+        _ = recoveryStore
+        refreshRecoveryReferences()
         logInfo("AppState", "Initialized. Model=\(selectedModelID), Language=\(language), Mode=\(hotkeyMode)")
     }
 
@@ -275,6 +277,12 @@ class AppState: ObservableObject {
         let work = {
             self.history.insert(entry, at: 0)
             if self.history.count > self.maxHistoryCount {
+                for item in self.history.dropFirst(self.maxHistoryCount) {
+                    if let id = item.recoveryID,
+                       !self.history.prefix(self.maxHistoryCount).contains(where: { $0.recoveryID == id }) {
+                        self.recoveryStore?.remove(id)
+                    }
+                }
                 self.history = Array(self.history.prefix(self.maxHistoryCount))
             }
             self.saveHistory()
@@ -284,8 +292,54 @@ class AppState: ObservableObject {
     }
 
     func clearHistory() {
+        clearRecoveryAudio()
         history.removeAll()
         saveHistory()
+    }
+
+    lazy var recoveryStore: RecoveryStore? = {
+        let url = FileManager.default.homeDirectoryForCurrentUser
+            .appendingPathComponent(".local/share/typelessmlx/recovery", isDirectory: true)
+        do { return try RecoveryStore(directory: url) }
+        catch { logError("Recovery", "無法開啟救援資料：\(error)"); return nil }
+    }()
+
+    func refreshRecoveryReferences() {
+        if !retainFailedAudio { try? recoveryStore?.clear() }
+        try? recoveryStore?.cleanup()
+        for index in history.indices {
+            if let id = history[index].recoveryID, recoveryStore?.url(for: id) == nil {
+                history[index].recoveryID = nil
+            }
+        }
+        saveHistory()
+    }
+
+    func clearRecoveryAudio() {
+        try? recoveryStore?.clear()
+        for index in history.indices { history[index].recoveryID = nil }
+        saveHistory()
+    }
+
+    func updateHistory(_ id: UUID, update: (inout TranscriptionEntry) -> Void) {
+        guard let index = history.firstIndex(where: { $0.id == id }) else { return }
+        update(&history[index])
+        saveHistory()
+    }
+
+    func copyHistory(_ id: UUID, original: Bool = false) {
+        guard let entry = history.first(where: { $0.id == id }) else { return }
+        if TextPaster.shared.copyText(original ? entry.originalText : entry.text) {
+            updateHistory(id) { $0.delivery = .copied; $0.phase = .completed }
+        } else { showError("安全輸入啟用中，未複製文字") }
+    }
+
+    func restoreOriginal(_ id: UUID) {
+        updateHistory(id) { entry in
+            entry.text = entry.originalText
+            entry.delivery = .retained
+            entry.phase = .awaitingInput
+        }
     }
 
     private var historyURL: URL {
@@ -298,7 +352,8 @@ class AppState: ObservableObject {
     private func saveHistory() {
         do {
             let data = try JSONEncoder().encode(history)
-            try data.write(to: historyURL)
+            try data.write(to: historyURL, options: .atomic)
+            try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: historyURL.path)
         } catch {
             logError("AppState", "Failed to save history: \(error)")
         }

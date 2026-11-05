@@ -106,6 +106,8 @@ cp "TypelessMLX/Info.plist" "$APP_BUNDLE/Contents/Info.plist"
 # Copy backend Python files
 mkdir -p "$APP_BUNDLE/Contents/Resources/backend"
 cp backend/transcribe_server.py "$APP_BUNDLE/Contents/Resources/backend/"
+cp backend/model_validation.py "$APP_BUNDLE/Contents/Resources/backend/"
+cp backend/model_manifest.json "$APP_BUNDLE/Contents/Resources/backend/"
 cp backend/convert.py "$APP_BUNDLE/Contents/Resources/backend/"
 cp backend/requirements.txt "$APP_BUNDLE/Contents/Resources/backend/"
 echo "  ✅ Python backend bundled"

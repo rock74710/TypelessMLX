@@ -70,7 +70,7 @@ class StatusBarController {
             button.image = NSImage(systemSymbolName: "mic.circle.fill", accessibilityDescription: "TypelessMLX - 錄音中")
             button.image?.isTemplate = false
             button.contentTintColor = .systemRed
-        case .transcribing:
+        case .transcribing, .preparing, .refining, .awaitingInput:
             button.image = NSImage(systemSymbolName: "ellipsis.circle.fill", accessibilityDescription: "TypelessMLX - 辨識中")
             button.image?.isTemplate = false
             button.contentTintColor = .systemOrange

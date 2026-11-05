@@ -11,6 +11,7 @@ class SpeechStreamer {
 
     private var recognizer: SFSpeechRecognizer?
     private var streamRequest: SFSpeechAudioBufferRecognitionRequest?
+    private var streamGeneration = UUID()
     private var streamTask: SFSpeechRecognitionTask?
     private let lock = NSLock()
 
@@ -22,7 +23,6 @@ class SpeechStreamer {
     private var activeTranscriptionGate: CompletionGate?
     private var activeLegacyTask: SFSpeechRecognitionTask?
     private var activeModernTask: Task<Void, Never>?
-    private var activeRefinementTask: Task<Void, Never>?
 
     /// Called on the main thread with the latest partial / final text.
     var liveTextHandler: ((String) -> Void)?
@@ -72,6 +72,7 @@ class SpeechStreamer {
     func startStreaming(language: String?) {
         lock.lock()
         cancelStreamingLocked()
+        let generation = streamGeneration
         lock.unlock()
 
         let locale = Self.locale(for: language)
@@ -91,7 +92,12 @@ class SpeechStreamer {
         let task = rec.recognitionTask(with: request) { [weak self] result, _ in
             guard let self = self, let result = result else { return }
             let text = result.bestTranscription.formattedString
-            DispatchQueue.main.async { self.liveTextHandler?(text) }
+            DispatchQueue.main.async {
+                self.lock.lock()
+                let current = self.streamGeneration == generation
+                self.lock.unlock()
+                if current { self.liveTextHandler?(text) }
+            }
         }
 
         lock.lock()
@@ -123,10 +129,11 @@ class SpeechStreamer {
         lock.lock()
         cancelStreamingLocked()
         lock.unlock()
-        DispatchQueue.main.async { self.liveTextHandler?("") }
+        liveTextHandler = nil
     }
 
     private func cancelStreamingLocked() {
+        streamGeneration = UUID()
         streamTask?.cancel()
         streamTask = nil
         streamRequest = nil
@@ -158,16 +165,13 @@ class SpeechStreamer {
         let previousGate = activeTranscriptionGate
         let previousLegacyTask = activeLegacyTask
         let previousModernTask = activeModernTask
-        let previousRefinementTask = activeRefinementTask
         activeTranscriptionGate = gate
         activeLegacyTask = nil
         activeModernTask = nil
-        activeRefinementTask = nil
         lock.unlock()
 
         previousLegacyTask?.cancel()
         previousModernTask?.cancel()
-        previousRefinementTask?.cancel()
         if previousGate != nil {
             logWarn("SpeechStreamer", "Cancelled superseded final transcription request")
             previousGate?.complete(.failure(TranscriptionCancelledError()))
@@ -206,6 +210,7 @@ class SpeechStreamer {
                     self.startLegacyTranscription(
                         audioURL: audioURL,
                         locale: locale,
+                        contextualStrings: contextualStrings,
                         requestID: requestID,
                         gate: gate,
                         startedAt: requestStartedAt,
@@ -226,6 +231,7 @@ class SpeechStreamer {
             startLegacyTranscription(
                 audioURL: audioURL,
                 locale: locale,
+                contextualStrings: contextualStrings,
                 requestID: requestID,
                 gate: gate,
                 startedAt: requestStartedAt,
@@ -237,6 +243,7 @@ class SpeechStreamer {
     private func startLegacyTranscription(
         audioURL: URL,
         locale: Locale,
+        contextualStrings: [String],
         requestID: Int,
         gate: CompletionGate,
         startedAt: Date,
@@ -266,6 +273,7 @@ class SpeechStreamer {
 
         let request = SFSpeechURLRecognitionRequest(url: audioURL)
         request.shouldReportPartialResults = false
+        request.contextualStrings = contextualStrings
 
         let task = rec.recognitionTask(with: request) { [weak self] result, error in
             guard let self = self else { return }
@@ -313,38 +321,22 @@ class SpeechStreamer {
     ) {
         guard isCurrentTranscription(requestID, gate: gate) else { return }
 
-        if #available(macOS 26, *), AppState.shared.enableTextRefinement {
-            let refinementTask = Task { [weak self] in
-                let refined = await TextRefiner.shared.refine(text)
-                guard let self = self else { return }
-                guard self.isCurrentTranscription(requestID, gate: gate) else { return }
-                self.completeTranscription(
-                    .success(refined),
-                    requestID: requestID,
-                    gate: gate,
-                    locale: locale,
-                    backend: backend,
-                    startedAt: startedAt
-                )
-            }
+        completeTranscription(.success(text), requestID: requestID, gate: gate,
+                              locale: locale, backend: backend, startedAt: startedAt)
+    }
 
-            lock.lock()
-            if transcriptionGeneration == requestID, activeTranscriptionGate === gate {
-                activeRefinementTask = refinementTask
-            } else {
-                refinementTask.cancel()
-            }
-            lock.unlock()
-        } else {
-            completeTranscription(
-                .success(text),
-                requestID: requestID,
-                gate: gate,
-                locale: locale,
-                backend: backend,
-                startedAt: startedAt
-            )
-        }
+    func cancelTranscription() {
+        lock.lock()
+        transcriptionGeneration &+= 1
+        let gate = activeTranscriptionGate
+        let legacy = activeLegacyTask
+        let modern = activeModernTask
+        activeTranscriptionGate = nil
+        activeLegacyTask = nil
+        activeModernTask = nil
+        lock.unlock()
+        legacy?.cancel(); modern?.cancel()
+        gate?.complete(.failure(TranscriptionCancelledError()))
     }
 
     private func completeTranscription(
@@ -363,7 +355,6 @@ class SpeechStreamer {
         activeTranscriptionGate = nil
         activeLegacyTask = nil
         activeModernTask = nil
-        activeRefinementTask = nil
         lock.unlock()
 
         let elapsed = Date().timeIntervalSince(startedAt)

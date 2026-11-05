@@ -1,5 +1,6 @@
 import AppKit
 import SwiftUI
+import Combine
 
 class SetupWindowController: NSObject {
     static let shared = SetupWindowController()
@@ -54,24 +55,32 @@ class SetupWindowController: NSObject {
 // MARK: - ViewModel
 
 class SetupViewModel: ObservableObject {
-    enum StepStatus { case unknown, running, done, failed(String) }
+    enum StepStatus { case unknown, pending(String), running, done, failed(String) }
 
     @Published var venvStatus: StepStatus = .unknown
+    @Published var selectedModelReadiness: ModelReadinessStatus = .notInstalled
     @Published var logLines: [String] = []
     @Published var isRunning = false
     @Published var allDone = false
 
     private var onComplete: (() -> Void)?
+    private var readinessObservation: AnyCancellable?
 
     init(onComplete: (() -> Void)? = nil) {
         self.onComplete = onComplete
+        self.selectedModelReadiness = ModelManager.shared.readinessState(for: AppState.shared.selectedModel)
+        self.readinessObservation = ModelManager.shared.$readinessStates.sink { [weak self] _ in
+            DispatchQueue.main.async { self?.refreshSelectedModelReadiness() }
+        }
     }
 
     func checkAll() {
         DispatchQueue.main.async {
             self.venvStatus = WhisperBridge.isVenvReady() ? .done : .unknown
             self.updateAllDone()
+            self.refreshSelectedModelReadiness()
         }
+        ModelManager.shared.refreshAllStatuses()
     }
 
     func runSetup() {
@@ -105,9 +114,10 @@ class SetupViewModel: ObservableObject {
                 self.updateAllDone()
                 // Start WhisperBridge
                 WhisperBridge.shared.start { success in
-                    AppState.shared.hasPythonBackend = success
+                    AppState.shared.hasPythonBackend = WhisperBridge.shared.backendIsReady
                     AppState.shared.updatePermissionState()
-                    logInfo("Setup", "WhisperBridge start: \(success)")
+                    logInfo("Setup", "WhisperBridge start callback: \(success), live: \(WhisperBridge.shared.backendIsReady)")
+                    ModelManager.shared.refreshAllStatuses()
                 }
                 DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
                     self.onComplete?()
@@ -228,6 +238,25 @@ class SetupViewModel: ObservableObject {
         }
     }
 
+    private func refreshSelectedModelReadiness() {
+        selectedModelReadiness = ModelManager.shared.readinessState(for: AppState.shared.selectedModel)
+    }
+
+    var modelStepStatus: StepStatus {
+        switch selectedModelReadiness {
+        case .notInstalled:
+            return .pending("首次使用時準備")
+        case .downloading, .validating:
+            return .running
+        case .ready:
+            return .done
+        case .needsRepair:
+            return .failed("需要修復")
+        case .unavailable(let message):
+            return .failed(message)
+        }
+    }
+
     func appendLog(_ line: String) {
         if Thread.isMainThread {
             logLines.append(line)
@@ -252,7 +281,7 @@ struct SetupView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("TypelessMLX 設定")
                         .font(.title2.bold())
-                    Text("設定 Python 環境（語音模型將在首次選用時自動下載）")
+                    Text("先安裝 Python；所選模型會在首次聽寫前下載、驗證並載入。")
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                 }
@@ -266,6 +295,10 @@ struct SetupView: View {
                         title: "Python 虛擬環境",
                         subtitle: "安裝 mlx-whisper 及相依套件",
                         status: viewModel.venvStatus)
+                stepRow(icon: "waveform",
+                        title: "所選語音模型",
+                        subtitle: AppState.shared.selectedModel.id,
+                        status: viewModel.modelStepStatus)
             }
             .padding(.horizontal)
 
@@ -344,6 +377,7 @@ struct SetupView: View {
     private func statusIcon(status: SetupViewModel.StepStatus) -> some View {
         switch status {
         case .unknown: Image(systemName: "circle.dashed").foregroundColor(.gray)
+        case .pending(_): Image(systemName: "circle.dashed").foregroundColor(.gray)
         case .running: ProgressView().controlSize(.small)
         case .done: Image(systemName: "checkmark.circle.fill").foregroundColor(.green)
         case .failed: Image(systemName: "exclamationmark.triangle.fill").foregroundColor(.orange)
@@ -354,6 +388,7 @@ struct SetupView: View {
     private func statusLabel(status: SetupViewModel.StepStatus) -> some View {
         switch status {
         case .unknown: Text("未檢查").font(.caption).foregroundColor(.gray)
+        case .pending(let text): Text(text).font(.caption).foregroundColor(.gray)
         case .running: Text("進行中...").font(.caption).foregroundColor(.orange)
         case .done: Text("完成").font(.caption).foregroundColor(.green)
         case .failed(let msg): Text("失敗").font(.caption).foregroundColor(.red).help(msg)

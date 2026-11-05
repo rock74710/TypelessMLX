@@ -8,9 +8,14 @@ Usage:
 """
 import argparse
 import copy
+import hashlib
+import importlib.metadata
 import json
 import os
+import shutil
 import sys
+import tempfile
+from datetime import datetime, timezone
 from dataclasses import asdict
 from pathlib import Path
 
@@ -20,6 +25,16 @@ import torch
 from mlx.utils import tree_flatten, tree_map, tree_unflatten
 from mlx_whisper import torch_whisper
 from mlx_whisper.whisper import ModelDimensions, Whisper
+
+from model_validation import (
+    ModelValidationError,
+    MODEL_MANIFEST,
+    publish_staged_artifact,
+    verify_files,
+)
+
+
+SOURCE_SPEC = MODEL_MANIFEST["conversion_sources"]["breeze-asr-25-canonical"]
 
 
 def hf_to_pt(weights, config):
@@ -64,35 +79,103 @@ def hf_to_pt(weights, config):
 
 
 def load_hf_weights(hf_path: str):
-    """Download and load weights from a HuggingFace repo."""
+    """Download a fixed Breeze revision and verify its trusted Hub metadata."""
     from huggingface_hub import snapshot_download
 
-    print(f"[INFO] Downloading {hf_path} from HuggingFace...", flush=True)
+    if hf_path != SOURCE_SPEC["repo_id"]:
+        raise ValueError(f"Only the pinned source {SOURCE_SPEC['repo_id']} is supported")
+    revision = SOURCE_SPEC["revision"]
+    print(f"[INFO] Downloading {hf_path}@{revision} from Hugging Face...", flush=True)
     local_path = snapshot_download(
         repo_id=hf_path,
-        allow_patterns=["*.json", "pytorch_model.bin", "model.safetensors", "*.txt"],
+        revision=revision,
+        allow_patterns=list(SOURCE_SPEC["required_files"].keys()),
     )
     local_path = Path(local_path)
-
-    pt_path = local_path / "pytorch_model.bin"
-    if pt_path.is_file():
-        print("[INFO] Loading pytorch_model.bin...", flush=True)
-        weights = torch.load(str(pt_path), map_location="cpu", weights_only=True)
-    else:
-        sf_path = local_path / "model.safetensors"
-        print(f"[INFO] Loading model.safetensors...", flush=True)
-        from safetensors.torch import load_file
-        weights = load_file(str(sf_path))
-
+    if local_path.name != revision:
+        raise ModelValidationError(
+            f"Downloaded source revision {local_path.name}; expected {revision}"
+        )
+    verify_files(local_path, SOURCE_SPEC["required_files"])
+    sf_path = local_path / "model.safetensors"
+    print("[INFO] Loading verified model.safetensors...", flush=True)
+    from safetensors.torch import load_file
+    weights = load_file(str(sf_path))
     with open(local_path / "config.json") as f:
         config = json.load(f)
 
-    return weights, config
+    return weights, config, local_path
+
+
+def sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as source:
+        for chunk in iter(lambda: source.read(8 * 1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def tool_version(package: str, fallback: str | None = None) -> str:
+    try:
+        return importlib.metadata.version(package)
+    except importlib.metadata.PackageNotFoundError:
+        if fallback:
+            return fallback
+        raise RuntimeError(f"Could not read installed {package} version")
+
+
+def _write_conversion_manifest(output: Path, dtype_str: str) -> dict:
+    files = {}
+    for name in ("config.json", "weights.safetensors"):
+        path = output / name
+        files[name] = {"size": path.stat().st_size, "sha256": sha256_file(path)}
+    manifest = {
+        "format": "typelessmlx-conversion-v1",
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "source": {
+            "repo_id": SOURCE_SPEC["repo_id"],
+            "revision": SOURCE_SPEC["revision"],
+            "trusted_files": SOURCE_SPEC["required_files"],
+        },
+        "conversion": {
+            "dtype": dtype_str,
+            "parameters": {
+                "source_format": "Hugging Face Transformers safetensors",
+                "mapping": "hf_to_pt v1",
+                "convolution_layout": "(out,in,k) to (out,k,in)",
+                "encoder_positional_embedding": "computed by mlx_whisper and omitted from saved source weights",
+            },
+            "tools": {
+                "mlx": tool_version("mlx"),
+                "mlx_whisper": tool_version("mlx-whisper", getattr(torch_whisper, "__version__", None)),
+                "torch": str(torch.__version__),
+            },
+        },
+        "outputs": files,
+    }
+    manifest_path = output / "conversion_manifest.json"
+    manifest_path.write_text(json.dumps(manifest, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    return manifest
 
 
 def convert_hf_to_mlx(hf_path: str, mlx_path: str, dtype_str: str = "float16"):
-    """Convert a HuggingFace Whisper model to MLX format."""
+    """Convert the pinned Breeze source into a staged, loader-checked artifact."""
+    if dtype_str not in {"float16", "float32"}:
+        raise ValueError("dtype must be float16 or float32")
     dtype = mx.float16 if dtype_str == "float16" else mx.float32
+
+    target = Path(os.path.expanduser(mlx_path)).resolve()
+    target.parent.mkdir(parents=True, exist_ok=True)
+    staging = Path(tempfile.mkdtemp(prefix=f".{target.name}.stage-", dir=target.parent))
+    try:
+        return _convert_to_staging(hf_path, target, staging, dtype_str, dtype)
+    except Exception:
+        if staging.exists():
+            shutil.rmtree(staging, ignore_errors=True)
+        raise
+
+
+def _convert_to_staging(hf_path: str, target: Path, mlx_path: Path, dtype_str: str, dtype):
 
     def remap_weight(key, value):
         # mlx_whisper uses mlp1/mlp2 directly (not mlp.0/mlp.2)
@@ -109,7 +192,7 @@ def convert_hf_to_mlx(hf_path: str, mlx_path: str, dtype_str: str = "float16"):
         return key, value.astype(dtype)
 
     # Load HF weights
-    raw_weights, hf_config = load_hf_weights(hf_path)
+    raw_weights, hf_config, source_path = load_hf_weights(hf_path)
 
     # Map to OpenAI/MLX weight names
     print("[INFO] Remapping weight names...", flush=True)
@@ -118,6 +201,18 @@ def convert_hf_to_mlx(hf_path: str, mlx_path: str, dtype_str: str = "float16"):
     # Remove positional embedding (computed, not stored)
     weights.pop("encoder.positional_embedding", None)
 
+    model_dims = ModelDimensions(**mlx_config)
+    model = Whisper(model_dims, dtype)
+    expected_params = dict(tree_flatten(model.parameters()))
+    expected_keys = set(expected_params)
+    converted_keys = set(weights)
+    missing = sorted(expected_keys - converted_keys)
+    unexpected = sorted(converted_keys - expected_keys)
+    if missing or unexpected:
+        raise ModelValidationError(
+            f"Converted weight keys do not match model structure; missing={missing[:8]}, unexpected={unexpected[:8]}"
+        )
+
     # Convert weights: rename mlp + transpose conv
     print("[INFO] Converting weights to MLX format...", flush=True)
     mlx_weights = {}
@@ -125,17 +220,14 @@ def convert_hf_to_mlx(hf_path: str, mlx_path: str, dtype_str: str = "float16"):
         new_k, new_v = remap_weight(k, v)
         mlx_weights[new_k] = new_v
 
-    # Build MLX model to verify
+    # Load every mapped tensor before writing an artifact.
     print("[INFO] Verifying model structure...", flush=True)
-    model_dims = ModelDimensions(**mlx_config)
-    model = Whisper(model_dims, dtype)
-    model.load_weights(list(mlx_weights.items()), strict=False)
+    model.load_weights(list(mlx_weights.items()), strict=True)
 
     # Final weights from model
     final_weights = dict(tree_flatten(model.parameters()))
 
     # Save
-    mlx_path = Path(mlx_path)
     mlx_path.mkdir(parents=True, exist_ok=True)
 
     print(f"[INFO] Saving to {mlx_path}...", flush=True)
@@ -150,6 +242,29 @@ def convert_hf_to_mlx(hf_path: str, mlx_path: str, dtype_str: str = "float16"):
         json.dump(config_out, f, indent=4)
 
     print(f"[INFO] Saved weights.safetensors and config.json to {mlx_path}", flush=True)
+    conversion_manifest = _write_conversion_manifest(mlx_path, dtype_str)
+    verify_files(
+        mlx_path,
+        {
+            name: {"size": details["size"], "algorithm": "sha256", "digest": details["sha256"]}
+            for name, details in conversion_manifest["outputs"].items()
+        },
+    )
+
+    print("[INFO] Reloading staged artifact through mlx_whisper loader...", flush=True)
+    from mlx_whisper.load_models import load_model
+    reloaded = load_model(str(mlx_path), dtype=dtype)
+    del reloaded
+    try:
+        mx.clear_cache()
+    except AttributeError:
+        pass
+
+    # Keep the manifest's source metadata tied to the verified downloaded snapshot.
+    if source_path.name != SOURCE_SPEC["revision"]:
+        raise ModelValidationError("Verified Breeze source snapshot changed during conversion")
+    publish_staged_artifact(mlx_path, target)
+    print(f"[INFO] Published verified model to {target}", flush=True)
     return True
 
 

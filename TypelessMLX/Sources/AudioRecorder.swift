@@ -10,17 +10,45 @@ class AudioRecorder: NSObject {
     static let shared = AudioRecorder()
 
     private let engine = AVAudioEngine()
+    private let gainProcessor = AudioGainProcessor()
     private var tapFileWriter: AudioTapFileWriter?
     private var currentURL: URL?
+    private var pendingStopURLs: Set<URL> = []
     private var isCurrentlyRecording = false
     private let lock = NSLock()
     private var recordingStartedAt: Date?  // for config-change grace period
+    private var gainChangesStorage: [Double] = []
 
     /// Called on the audio tap thread with a normalised 0–1 level each buffer (~23ms).
     var audioLevelHandler: ((Float) -> Void)?
 
     /// Called on the audio tap thread with each raw PCM buffer — used by SpeechStreamer for live preview.
     var audioBufferHandler: ((AVAudioPCMBuffer) -> Void)?
+
+    /// Called on the tap thread when a buffer clips at least 1% of its samples.
+    var clippingHandler: ((Double) -> Void)?
+
+    /// Gain changes made during the current or most recent recording.
+    var gainChanges: [Double] {
+        lock.lock()
+        defer { lock.unlock() }
+        return gainChangesStorage
+    }
+
+    /// Sets App input gain. The processor clamps the value to −6…+12 dB in 3 dB steps.
+    func setInputGainDB(_ value: Double) {
+        let oldValue = gainProcessor.gainDB
+        gainProcessor.gainDB = value
+        let newValue = gainProcessor.gainDB
+        guard oldValue != newValue else { return }
+
+        lock.lock()
+        if isCurrentlyRecording {
+            gainChangesStorage.append(newValue)
+        }
+        lock.unlock()
+        logInfo("AudioRecorder", "Input gain changed: \(oldValue) → \(newValue) dB")
+    }
 
     private override init() {
         super.init()
@@ -81,6 +109,10 @@ class AudioRecorder: NSObject {
         if engine.isRunning { engine.stop() }
         engine.reset()
 
+        lock.lock()
+        gainChangesStorage = []
+        lock.unlock()
+
         let url = tempAudioURL()
         logInfo("AudioRecorder", "Starting recording to: \(url.lastPathComponent)")
 
@@ -117,6 +149,8 @@ class AudioRecorder: NSObject {
                 let writer = self.tapFileWriter
                 self.lock.unlock()
                 guard recording, let writer = writer else { return }
+                // The same processed tap buffer feeds the file, level meter, and live preview.
+                let gainResult = self.gainProcessor.process(buffer)
                 do {
                     let openedFile = try writer.write(buffer)
                     if openedFile {
@@ -126,13 +160,11 @@ class AudioRecorder: NSObject {
                     logError("AudioRecorder", "Write error: \(error)")
                 }
                 // RMS audio level for overlay visualisation
-                if let handler = self.audioLevelHandler,
-                   let channelData = buffer.floatChannelData {
-                    let frameCount = Int(buffer.frameLength)
-                    var sum: Float = 0
-                    for i in 0..<frameCount { let s = channelData[0][i]; sum += s * s }
-                    let rms = frameCount > 0 ? sqrt(sum / Float(frameCount)) : 0
-                    handler(min(1.0, rms * 8.0))
+                if let handler = self.audioLevelHandler {
+                    handler(min(1.0, Float(gainResult.normalizedRMS) * 8.0))
+                }
+                if gainResult.clippingRatio >= AudioGainProcessor.clippingWarningRatio {
+                    self.clippingHandler?(gainResult.clippingRatio)
                 }
                 // Forward buffer to SpeechStreamer for live preview
                 self.audioBufferHandler?(buffer)
@@ -173,6 +205,7 @@ class AudioRecorder: NSObject {
         isCurrentlyRecording = false
         recordingStartedAt = nil
         let url = currentURL
+        if let url { pendingStopURLs.insert(url) }
         tapFileWriter = nil
         currentURL = nil
         lock.unlock()
@@ -182,6 +215,14 @@ class AudioRecorder: NSObject {
         if engine.isRunning { engine.stop() }
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+            self.lock.lock()
+            let isPending = url.map { self.pendingStopURLs.remove($0) != nil } ?? false
+            self.lock.unlock()
+            guard isPending else {
+                completion(nil)
+                return
+            }
+
             guard let url = url else {
                 logError("AudioRecorder", "No URL after stop")
                 completion(nil)
@@ -214,13 +255,20 @@ class AudioRecorder: NSObject {
     func forceReset() {
         logWarn("AudioRecorder", "Force reset")
         lock.lock()
+        var discardedURLs = pendingStopURLs
+        if let currentURL { discardedURLs.insert(currentURL) }
         isCurrentlyRecording = false
         tapFileWriter = nil
         currentURL = nil
+        pendingStopURLs.removeAll()
         lock.unlock()
         removeTapSafely()
         if engine.isRunning { engine.stop() }
         engine.reset()
+        for discardedURL in discardedURLs {
+            try? FileManager.default.removeItem(at: discardedURL)
+            logInfo("AudioRecorder", "Removed cancelled audio file: \(discardedURL.lastPathComponent)")
+        }
         logInfo("AudioRecorder", "Engine reset complete")
     }
 

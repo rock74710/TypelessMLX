@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "metadata_source": "Hugging Face Hub API: /api/models/{repo}/tree/{revision}?recursive=true&expand=true",
+  "metadata_captured_at": "2026-11-05",
+  "hash_notes": {
+    "sha256": "LFS SHA-256 reported by the Hugging Face Hub API.",
+    "git-sha1": "Git blob SHA-1 reported by the Hugging Face Hub API; verify using the Git blob header and exact byte count.",
+    "content_sha256": "Computed from the exact pinned file bytes; the Hub-reported Git blob SHA-1 remains the trust anchor."
+  },
+  "models": {
+    "qwen3-asr-0.6b": {
+      "model_type": "qwen3",
+      "repo_id": "mlx-community/Qwen3-ASR-0.6B-8bit",
+      "revision": "89e96d92ba34aca20b3e29fb10cc284097d1219f",
+      "required_files": {
+        "chat_template.json": {"size": 1161, "algorithm": "git-sha1", "digest": "c44736493efd71ec96218cc626904698cdb13235"},
+        "config.json": {"size": 7187, "algorithm": "git-sha1", "digest": "845f0d3848c5240a7eee9e1676cbe241c1b92585"},
+        "generation_config.json": {"size": 142, "algorithm": "git-sha1", "digest": "7382a4d347c0a865b76bb1b8277f66a5ac312854"},
+        "merges.txt": {"size": 1671853, "algorithm": "git-sha1", "digest": "31349551d90c7606f325fe0f11bbb8bd5fa0d7c7"},
+        "model.safetensors": {"size": 1006229426, "algorithm": "sha256", "digest": "b5bfe4abc1b4c6e58b633096682ec2b6297298add1527119936107d211adf0e8"},
+        "model.safetensors.index.json": {"size": 71815, "algorithm": "git-sha1", "digest": "19ddb6277777ec48662d9942f1191d8795308bfd"},
+        "preprocessor_config.json": {"size": 330, "algorithm": "git-sha1", "digest": "8f7f07346466d5d494ec0d4969d1c3d0190eed72"},
+        "tokenizer_config.json": {"size": 12487, "algorithm": "git-sha1", "digest": "b93109843922a40c6654c5449d3bf95372267c66"},
+        "vocab.json": {"size": 2776833, "algorithm": "git-sha1", "digest": "4783fe10ac3adce15ac8f358ef5462739852c569"}
+      }
+    },
+    "breeze-asr-25": {
+      "model_type": "whisper",
+      "repo_id": "schsu/breeze-asr-25-mlx",
+      "revision": "6e48985d562fcf19e80daf8bebf84fb994fb3cc7",
+      "required_files": {
+        "config.json": {"size": 268, "algorithm": "git-sha1", "digest": "48abf62a3d41836847f8c8ff4e74625201b7096f", "content_sha256": "77d68bd8db0be90465fd7d35f8e4fa418297e449a27525060517a7e0df432c4b"},
+        "weights.safetensors": {"size": 3082909389, "algorithm": "sha256", "digest": "c75f7bf32b82421d73d5e6f198883a60863613ae63cb59dc66a78edd72c62364"}
+      },
+      "local_artifacts": {
+        "preferred_8bit_directory": "~/.local/share/typelessmlx/models/breeze-asr-25-mlx-8bit",
+        "fallback_fp16_directory": "~/.local/share/typelessmlx/models/breeze-asr-25-mlx",
+        "8bit_provenance_file": "quantization_manifest.json",
+        "fp16_provenance_file": "conversion_manifest.json"
+      }
+    },
+    "whisper-large-v3": {
+      "model_type": "whisper",
+      "repo_id": "mlx-community/whisper-large-v3-mlx",
+      "revision": "49e6aa286ad60c14352c404340ded53710378a11",
+      "required_files": {
+        "config.json": {"size": 269, "algorithm": "git-sha1", "digest": "2c626df3c540bdc0287b11725441d10e1af73680"},
+        "weights.npz": {"size": 3083520416, "algorithm": "sha256", "digest": "05ff791ce3630fae47e7c51004e9666204d786246ec07cac6110af768099b40d"}
+      }
+    },
+    "whisper-medium": {
+      "model_type": "whisper",
+      "repo_id": "mlx-community/whisper-medium-mlx",
+      "revision": "7fc08c4eac4c316526498f147dfdee6f6303f975",
+      "required_files": {
+        "config.json": {"size": 268, "algorithm": "git-sha1", "digest": "96da6a75123b7642a14599c6afb516b0c1562237"},
+        "weights.npz": {"size": 1524924912, "algorithm": "sha256", "digest": "10b597c2bcb1bcc38b2d3d24cd4f0885f461a7cd70e8444d6ad5a763ece549ea"}
+      }
+    },
+    "whisper-small": {
+      "model_type": "whisper",
+      "repo_id": "mlx-community/whisper-small-mlx",
+      "revision": "45f3915923c7a79a5a5b5a7d909d39aeb0e5630e",
+      "required_files": {
+        "config.json": {"size": 266, "algorithm": "git-sha1", "digest": "df4c65c442a30e50034ee63422b31bde60c3d407"},
+        "weights.npz": {"size": 481307592, "algorithm": "sha256", "digest": "55b6674c9b339702d486e2b1573839a66f8ec8f821ed2886993ef717a86b09f5"}
+      }
+    }
+  },
+  "conversion_sources": {
+    "breeze-asr-25-canonical": {
+      "repo_id": "MediaTek-Research/Breeze-ASR-25",
+      "revision": "cffe7ccb404d025296a00758d0a33468bec3a9d0",
+      "required_files": {
+        "config.json": {"size": 2281, "algorithm": "git-sha1", "digest": "c4b4ac4f3cdeafbbb975a7ca92c2d3aef7e7811e"},
+        "model.safetensors": {"size": 3086761032, "algorithm": "sha256", "digest": "c5d952b3bc03ea277209aff0ef5b5c4c055d74449ff794c02d8f4e315fdef6b6"}
+      }
+    }
+  }
+}

@@ -7,6 +7,10 @@ let package = Package(
         .macOS(.v13)
     ],
     targets: [
+        .target(name: "TypelessMLXTextSupport", path: "TypelessMLX/TextSupport"),
+        .executableTarget(name: "TypelessMLXGainAndTextTests", dependencies: ["TypelessMLXAudioTapSupport", "TypelessMLXTextSupport"], path: "TypelessMLX/Tests/GainAndText"),
+        .target(name: "TypelessMLXWorkflowSupport", path: "TypelessMLX/WorkflowSupport"),
+        .executableTarget(name: "TypelessMLXWorkflowTests", dependencies: ["TypelessMLXWorkflowSupport"], path: "TypelessMLX/Tests/Workflow"),
         .target(
             name: "TypelessMLXHotkeySupport",
             path: "TypelessMLX/HotkeySupport"
@@ -28,7 +32,9 @@ let package = Package(
                 "TypelessMLXHotkeySupport",
                 "TypelessMLXAudioTapSupport",
                 "TypelessMLXAudioInputSupport",
-                "TypelessMLXSpeechBackendPolicy"
+                "TypelessMLXSpeechBackendPolicy",
+                "TypelessMLXWorkflowSupport",
+                "TypelessMLXTextSupport"
             ],
             path: "TypelessMLX/Sources",
             linkerSettings: [

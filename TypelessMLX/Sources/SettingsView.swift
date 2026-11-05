@@ -3,6 +3,8 @@ import AppKit
 import AVFoundation
 import ServiceManagement
 import TypelessMLXHotkeySupport
+import TypelessMLXWorkflowSupport
+import TypelessMLXTextSupport
 
 struct SettingsView: View {
     @EnvironmentObject var appState: AppState
@@ -25,7 +27,7 @@ struct SettingsView: View {
                 .tabItem { Label("歷史", systemImage: "clock") }
                 .tag(2)
         }
-        .frame(width: 480, height: 420)
+        .frame(width: 560, height: 600)
         .padding()
     }
 }
@@ -119,6 +121,14 @@ struct GeneralSettingsTab: View {
                 }
             }
 
+            Section("輸入增益") {
+                Stepper("\(Int(appState.inputGainDB)) dB", value: $appState.inputGainDB, in: -6...12, step: 3)
+                    .onChange(of: appState.inputGainDB) { AudioRecorder.shared.setInputGainDB($0) }
+                Button("回到 0 dB") { appState.inputGainDB = 0 }
+                Text("只調整 App 音訊。下一段音訊生效；削波時請降低增益。")
+                    .font(.caption).foregroundColor(.secondary)
+            }
+
             Section("顯示") {
                 Toggle("顯示浮動錄音指示器", isOn: $appState.showFloatingOverlay)
                 Toggle("開機自動啟動", isOn: $appState.launchAtLogin)
@@ -137,6 +147,9 @@ struct GeneralSettingsTab: View {
                     Text("輔助使用（Accessibility）")
                     Spacer()
                     PermissionBadge(granted: AXIsProcessTrusted())
+                }
+                if !appState.hasAccessibilityPermission {
+                    Button("開啟輔助使用設定") { TextPaster.openAccessibilitySettings() }
                 }
                 if appState.requiresPythonBackend {
                     HStack {
@@ -286,6 +299,7 @@ struct ModelRow: View {
     let model: MLXModel
     let isSelected: Bool
     let isCached: Bool
+    let readinessText: String
     let sizeString: String
     let isDownloading: Bool
     let downloadStatusText: String
@@ -354,9 +368,9 @@ struct ModelRow: View {
         } else if isDownloading {
             EmptyView()
         } else if isCached {
-            badge(sizeString.isEmpty ? "已下載" : sizeString, color: .green)
+            badge(readinessText + (sizeString.isEmpty ? "" : " · " + sizeString), color: .green)
         } else {
-            badge("未下載", color: .secondary)
+            badge(readinessText, color: .secondary)
         }
     }
 
@@ -384,6 +398,7 @@ struct ModelSettingsTab: View {
                         model: model,
                         isSelected: appState.selectedModelID == model.id,
                         isCached: modelManager.isCached(model),
+                        readinessText: modelManager.statusText(for: model),
                         sizeString: modelManager.sizeString(for: model),
                         isDownloading: modelManager.downloadingModelID == model.id,
                         downloadStatusText: modelManager.downloadStatusText,
@@ -442,18 +457,23 @@ struct ModelSettingsTab: View {
             }
 
             Section(header: Text("文字後處理"),
-                    footer: Text("文字修正：使用 Apple Foundation Models 修正標點與錯字，需 macOS 26 + Apple Intelligence。\n移除猶豫詞：不需要 Apple Intelligence，所有 macOS 版本皆可使用，僅移除無語義的發音猶豫（呃、嗯、啊），不影響「那個」「就是」等詞彙。")) {
-                Toggle("啟用文字修正", isOn: $appState.enableTextRefinement)
+                    footer: Text("標點整理：只接受保留詞彙與數字的結果，需 macOS 26 + Apple Intelligence。\n移除猶豫詞：不需要 Apple Intelligence，所有 macOS 版本皆可使用，僅移除無語義的發音猶豫（呃、嗯、啊），不影響「那個」「就是」等詞彙。")) {
+                Toggle("啟用標點整理", isOn: $appState.enableTextRefinement)
                     .onChange(of: appState.enableTextRefinement) { newValue in
                         if newValue, #available(macOS 26, *) {
                             Task { await TextRefiner.shared.warmUp() }
                         }
                     }
-                Text("預設關閉可省下數百毫秒，僅在需要標點修正時再開啟。")
+                Text("整理超過 10 秒或變更詞彙時，保留整理前文字。")
                     .font(.caption)
                     .foregroundColor(.secondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
                 Toggle("移除語音猶豫詞（呃、嗯、啊⋯）", isOn: $appState.removeFillers)
+            }
+
+            Section("人工錯詞對照") {
+                Toggle("套用已確認的對照", isOn: $appState.enableVocabularyReplacements)
+                VocabularyRulesView()
             }
 
             Section(header: Text("提示詞（Initial Prompt）"),
@@ -519,6 +539,10 @@ struct HistorySettingsTab: View {
             Section {
                 Stepper("保留 \(appState.maxHistoryCount) 筆記錄",
                         value: $appState.maxHistoryCount, in: 10...200, step: 10)
+                Toggle("保存辨識失敗的錄音", isOn: $appState.retainFailedAudio)
+                Text("只存在本機。上限 24 小時、10 筆或 200 MB。關閉會立即清除。")
+                    .font(.caption).foregroundColor(.secondary)
+                Button("立即清除救援錄音", role: .destructive) { appState.clearRecoveryAudio() }
                 Button("清除所有歷史", role: .destructive) {
                     appState.clearHistory()
                 }
@@ -528,21 +552,127 @@ struct HistorySettingsTab: View {
                 if appState.history.isEmpty {
                     Text("尚無辨識記錄").foregroundColor(.secondary)
                 } else {
-                    List(appState.history.prefix(20)) { entry in
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(entry.text).lineLimit(2).font(.body)
-                            HStack {
-                                Text(entry.timestamp, style: .relative)
-                                Text("• \(String(format: "%.1fs", entry.duration))")
-                                Text("• \(entry.model)")
-                            }
-                            .font(.caption).foregroundColor(.secondary)
-                        }
-                        .padding(.vertical, 2)
+                    ForEach(appState.history.prefix(20)) { entry in
+                        HistoryEntryView(entry: entry).environmentObject(appState)
                     }
                 }
             }
         }
         .formStyle(.grouped)
+    }
+}
+
+
+private struct HistoryEntryView: View {
+    @EnvironmentObject var appState: AppState
+    let entry: TranscriptionEntry
+    @State private var editingRule = false
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(entry.text.isEmpty ? (entry.failureReason ?? "未取得文字") : entry.text)
+                .lineLimit(3).textSelection(.enabled)
+            Text(entry.delivery.description).font(.caption).foregroundColor(.secondary)
+            if let reason = entry.failureReason { Text(reason).font(.caption).foregroundColor(.orange) }
+            HStack {
+                Text(entry.timestamp, style: .relative)
+                Text("• \(String(format: "%.1fs", entry.duration)) • \(entry.model)")
+                if let gain = entry.gainDB { Text("• \(Int(gain)) dB") }
+            }.font(.caption).foregroundColor(.secondary)
+            HStack {
+                if !entry.text.isEmpty {
+                    Button("複製") { appState.copyHistory(entry.id) }
+                    Button("複製原文") { appState.copyHistory(entry.id, original: true) }
+                    Button("還原原文") { appState.restoreOriginal(entry.id) }
+                    Button("建立錯詞對照") { editingRule = true }
+                }
+                if let recovery = entry.recoveryID, appState.recoveryStore?.url(for: recovery) != nil {
+                    Button("重試錄音") { HotkeyManager.shared.retryHistory(entry) }
+                        .disabled(appState.status != .idle)
+                }
+            }.controlSize(.small)
+            if !entry.originalText.isEmpty {
+                DisclosureGroup("原文與整理結果") {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("原文：" + entry.originalText)
+                        if let text = entry.substitutedText { Text("詞彙替換：" + text) }
+                        if let text = entry.refinedText { Text("標點整理：" + text) }
+                    }.textSelection(.enabled).font(.caption)
+                }
+            }
+        }
+        .padding(.vertical, 6)
+        .sheet(isPresented: $editingRule) { VocabularyRuleEditor(source: entry) }
+    }
+}
+
+private struct VocabularyRulesView: View {
+    @State private var rules = DictionaryService.shared.correctionRules
+    @State private var canUndo = false
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            if rules.isEmpty { Text("從歷史按「建立錯詞對照」新增。") .font(.caption).foregroundColor(.secondary) }
+            ForEach(rules) { rule in
+                VStack(alignment: .leading, spacing: 3) {
+                    HStack {
+                        Toggle(rule.wrong + " → " + rule.right, isOn: Binding(
+                            get: { rules.first(where: { $0.id == rule.id })?.isEnabled ?? false },
+                            set: { value in
+                                _ = DictionaryService.shared.setReplacementEnabled(id: rule.id, enabled: value)
+                                refresh()
+                            }
+                        ))
+                        Button("刪除", role: .destructive) {
+                            _ = DictionaryService.shared.deleteReplacement(id: rule.id)
+                            canUndo = true
+                            refresh()
+                        }.controlSize(.small)
+                    }
+                    Text("來源歷史：" + rule.sourceHistoryID.uuidString.prefix(8))
+                        .font(.caption).foregroundColor(.secondary)
+                }
+            }
+            Button("撤銷上次刪除") {
+                _ = DictionaryService.shared.undoLastReplacementDeletion()
+                refresh()
+            }
+            .disabled(!canUndo)
+            Text("英文比對不分大小寫。中文只套用已確認的對照。每段原文只替換一次。")
+                .font(.caption).foregroundColor(.secondary)
+        }
+        .onAppear { refresh(); canUndo = true }
+    }
+    private func refresh() { rules = DictionaryService.shared.correctionRules }
+}
+
+private struct VocabularyRuleEditor: View {
+    @Environment(\.dismiss) private var dismiss
+    let source: TranscriptionEntry
+    @State private var wrong = ""
+    @State private var right = ""
+    @State private var confirmed = false
+    @State private var error: String?
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("建立錯詞對照").font(.headline)
+            Text(source.originalText).lineLimit(5).textSelection(.enabled)
+            TextField("辨識錯詞", text: $wrong)
+            TextField("正確詞彙", text: $right)
+            Toggle("我已確認詞彙及中文套用位置", isOn: $confirmed)
+            Text("中文會比對所有符合片段。請確認這組對照不會改錯其他詞。")
+                .font(.caption).foregroundColor(.secondary)
+            if let error { Text(error).foregroundColor(.red).font(.caption) }
+            HStack {
+                Button("取消") { dismiss() }
+                Spacer()
+                Button("儲存") {
+                    guard DictionaryService.shared.addReplacement(wrong: wrong, right: right,
+                        sourceHistoryID: source.id, chineseBoundaryConfirmed: confirmed) != nil else {
+                        error = "請輸入有效詞彙，並確認中文套用位置。"
+                        return
+                    }
+                    dismiss()
+                }.disabled(!confirmed)
+            }
+        }.padding(20).frame(width: 440)
     }
 }

@@ -56,6 +56,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationWillTerminate(_ notification: Notification) {
         permissionCheckTimer?.invalidate()
         logInfo("App", "TypelessMLX shutting down")
+        HotkeyManager.shared.cancelCurrentTask()
+        ModelManager.shared.cancelDownload()
         AudioRecorder.shared.forceReset()
         WhisperBridge.shared.stopProcess()
     }
@@ -127,7 +129,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         if WhisperBridge.isVenvReady() {
             logInfo("App", "Python venv ready — starting WhisperBridge")
             WhisperBridge.shared.start { [weak self] success in
-                self?.appState.hasPythonBackend = success
+                self?.appState.hasPythonBackend = WhisperBridge.shared.backendIsReady
                 self?.appState.updatePermissionState()
                 logInfo("App", "WhisperBridge started: \(success)")
             }

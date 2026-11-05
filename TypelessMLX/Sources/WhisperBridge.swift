@@ -11,6 +11,7 @@ class WhisperBridge {
     private var stdoutPipe: Pipe?
     private var stderrPipe: Pipe?
     private var isReady = false
+    private var startupToken: UUID?
     private struct RequestContext {
         let completion: (Result<String, Error>) -> Void
         let startTime: Date
@@ -23,14 +24,24 @@ class WhisperBridge {
     private var pingTimer: Timer?
     private var idleTimer: Timer?
 
-    private static let transcribeTimeout: TimeInterval = 600.0  // 10 min — allows first-run model download (~1GB)
-    private static let warmupTimeout: TimeInterval = 10.0       // short window for warm-up transcription
 
-    private init() {}
+    private let pythonOverride: String?
+    private let scriptOverride: String?
+    private let requestTimeout: TimeInterval
+    init(python: String? = nil, script: String? = nil, timeout: TimeInterval = 120) {
+        pythonOverride = python; scriptOverride = script; requestTimeout = timeout
+    }
+
+    var backendIsReady: Bool {
+        lock.lock()
+        defer { lock.unlock() }
+        return isReady && process?.isRunning == true
+    }
 
     // MARK: - Paths
 
     var pythonPath: String {
+        if let pythonOverride { return pythonOverride }
         let venvPython = NSHomeDirectory() + "/.local/share/typelessmlx/venv/bin/python"
         if FileManager.default.fileExists(atPath: venvPython) { return venvPython }
         // Homebrew fallbacks
@@ -41,6 +52,7 @@ class WhisperBridge {
     }
 
     var scriptPath: String {
+        if let scriptOverride { return scriptOverride }
         // In app bundle (Resources/backend/transcribe_server.py)
         if let path = Bundle.main.path(forResource: "transcribe_server", ofType: "py", inDirectory: "backend") {
             return path
@@ -61,13 +73,19 @@ class WhisperBridge {
     // MARK: - Lifecycle
 
     func start(completion: @escaping (Bool) -> Void) {
+        stopProcess()
+        let token = UUID()
+        lock.lock(); startupToken = token; lock.unlock()
         DispatchQueue.global(qos: .userInitiated).async {
-            self.startProcess(completion: completion)
+            self.startProcess(token: token, completion: completion)
         }
     }
 
-    private func startProcess(completion: @escaping (Bool) -> Void) {
-        stopProcess()
+    private func startProcess(token: UUID, completion: @escaping (Bool) -> Void) {
+        lock.lock()
+        let current = startupToken == token
+        lock.unlock()
+        guard current else { DispatchQueue.main.async { completion(false) }; return }
 
         let python = self.pythonPath
         let script = self.scriptPath
@@ -93,9 +111,9 @@ class WhisperBridge {
         process.standardOutput = stdoutPipe
         process.standardError = stderrPipe
 
-        process.terminationHandler = { [weak self] _ in
-            logWarn("WhisperBridge", "Python process terminated (exit: \(process.terminationStatus))")
-            self?.handleProcessTermination()
+        process.terminationHandler = { [weak self] ended in
+            logWarn("WhisperBridge", "Python process terminated (exit: \(ended.terminationStatus))")
+            self?.handleProcessTermination(ended)
         }
 
         do {
@@ -107,6 +125,12 @@ class WhisperBridge {
         }
 
         lock.lock()
+        guard startupToken == token else {
+            lock.unlock()
+            process.terminate()
+            DispatchQueue.main.async { completion(false) }
+            return
+        }
         self.process = process
         self.stdinPipe = stdinPipe
         self.stdoutPipe = stdoutPipe
@@ -124,54 +148,69 @@ class WhisperBridge {
             }
         }
 
-        // Wait for {"status": "ready"} (up to 60s for model load on first run)
-        let startTime = Date()
+        // 使用可逾時等待，避免 availableData 在啟動時無限阻塞。
+        let readySignal = DispatchSemaphore(value: 0)
+        let readyLock = NSLock()
+        var startupBuffer = Data()
         var readyReceived = false
-
-        while Date().timeIntervalSince(startTime) < 60 {
-            let data = stdoutPipe.fileHandleForReading.availableData
-            if !data.isEmpty, let text = String(data: data, encoding: .utf8) {
-                if text.contains("\"ready\"") || text.contains("ready") {
-                    readyReceived = true
-                    break
-                }
-            }
-            Thread.sleep(forTimeInterval: 0.1)
+        stdoutPipe.fileHandleForReading.readabilityHandler = { handle in
+            let data = handle.availableData
+            readyLock.lock()
+            startupBuffer.append(data)
+            if let text = String(data: startupBuffer, encoding: .utf8),
+               text.split(separator: "\n").contains(where: { line in
+                   guard let json = try? JSONSerialization.jsonObject(with: Data(line.utf8)) as? [String: Any] else { return false }
+                   return json["status"] as? String == "ready"
+               }) { readyReceived = true }
+            let done = readyReceived || data.isEmpty
+            readyLock.unlock()
+            if done { readySignal.signal() }
         }
-
-        guard readyReceived else {
-            logError("WhisperBridge", "Python did not send ready signal within 60s")
+        let waited = readySignal.wait(timeout: .now() + 60)
+        stdoutPipe.fileHandleForReading.readabilityHandler = nil
+        readyLock.lock(); let received = readyReceived; readyLock.unlock()
+        lock.lock()
+        let stillCurrent = startupToken == token && self.process === process
+        if received && stillCurrent { self.isReady = true }
+        lock.unlock()
+        guard waited == .success, received, stillCurrent else {
             process.terminate()
             DispatchQueue.main.async { completion(false) }
             return
         }
 
-        lock.lock()
-        self.isReady = true
-        lock.unlock()
-
         // Start async read loop
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            self?.readLoop()
+            self?.readLoop(pipe: stdoutPipe, owner: process)
         }
-
-        warmUpBackend()
 
         // Schedule health ping
         DispatchQueue.main.async { [weak self] in
-            self?.pingTimer = Timer.scheduledTimer(withTimeInterval: 30, repeats: true) { [weak self] _ in
+            guard let self else { return }
+            self.lock.lock()
+            let current = self.startupToken == token && self.process === process
+            self.lock.unlock()
+            guard current else { return }
+            self.pingTimer = Timer.scheduledTimer(withTimeInterval: 30, repeats: true) { [weak self] _ in
                 self?.sendPing()
             }
         }
 
         logInfo("WhisperBridge", "Python backend ready ✅")
-        DispatchQueue.main.async { completion(true) }
+        DispatchQueue.main.async {
+            self.lock.lock()
+            let current = self.startupToken == token && self.isReady && self.process === process
+            self.lock.unlock()
+            completion(current)
+        }
     }
 
-    private func handleProcessTermination() {
+    private func handleProcessTermination(_ ended: Process) {
         lock.lock()
+        guard process === ended else { lock.unlock(); return }
         isReady = false
         process = nil
+        startupToken = nil
         let pending = pendingRequests
         pendingRequests.removeAll()
         lock.unlock()
@@ -179,6 +218,10 @@ class WhisperBridge {
         let error = NSError(domain: "WhisperBridge", code: -1,
                             userInfo: [NSLocalizedDescriptionKey: "Python process terminated unexpectedly"])
         DispatchQueue.main.async {
+            self.lock.lock()
+            let stopped = self.process == nil
+            self.lock.unlock()
+            if stopped { AppState.shared.hasPythonBackend = false }
             for (_, context) in pending {
                 context.timeoutItem.cancel()
                 context.completion(.failure(error))
@@ -196,8 +239,12 @@ class WhisperBridge {
 
         lock.lock()
         isReady = false
+        startupToken = nil
         let proc = process
         process = nil
+        let pending = pendingRequests
+        pendingRequests.removeAll()
+        readBuffer = ""
         stdinPipe?.fileHandleForWriting.closeFile()
         stdinPipe = nil
         stdoutPipe?.fileHandleForReading.readabilityHandler = nil
@@ -207,23 +254,24 @@ class WhisperBridge {
         lock.unlock()
 
         proc?.terminate()
+        let error = NSError(domain: "WhisperBridge", code: NSUserCancelledError,
+                            userInfo: [NSLocalizedDescriptionKey: "辨識已取消"])
+        for context in pending.values {
+            context.timeoutItem.cancel()
+            DispatchQueue.main.async { context.completion(.failure(error)) }
+        }
         logInfo("WhisperBridge", "Python process stopped")
     }
 
     // MARK: - Reading
 
-    private func readLoop() {
-        lock.lock()
-        let pipe = stdoutPipe
-        lock.unlock()
-
-        guard let pipe = pipe else { return }
+    private func readLoop(pipe: Pipe, owner: Process) {
 
         while true {
             let data = pipe.fileHandleForReading.availableData
             if data.isEmpty {
                 lock.lock()
-                let running = process?.isRunning == true
+                let running = process === owner && owner.isRunning
                 lock.unlock()
                 if !running { break }
                 Thread.sleep(forTimeInterval: 0.01)
@@ -233,6 +281,7 @@ class WhisperBridge {
             guard let text = String(data: data, encoding: .utf8) else { continue }
 
             lock.lock()
+            guard process === owner else { lock.unlock(); break }
             readBuffer += text
             lock.unlock()
 
@@ -282,17 +331,7 @@ class WhisperBridge {
             DispatchQueue.main.async { context.completion(.failure(err)) }
         } else if let text = json["text"] as? String {
             logInfo("WhisperBridge", "Transcription (\(text.count) chars): \(text.prefix(80))")
-            // Only skip TextRefiner if text already has commas (mid-sentence punctuation).
-            // A trailing 。 from the Python fallback is NOT enough — commas are the key.
-            let needsRefinement = !text.contains("，")
-            if AppState.shared.enableTextRefinement, needsRefinement, #available(macOS 26, *) {
-                Task {
-                    let refined = await TextRefiner.shared.refine(text)
-                    DispatchQueue.main.async { context.completion(.success(refined)) }
-                }
-            } else {
-                DispatchQueue.main.async { context.completion(.success(text)) }
-            }
+            DispatchQueue.main.async { context.completion(.success(text)) }
         } else {
             let err = NSError(domain: "WhisperBridge", code: -3,
                               userInfo: [NSLocalizedDescriptionKey: "Invalid response from Python"])
@@ -302,7 +341,7 @@ class WhisperBridge {
 
     // MARK: - Transcription
 
-    func transcribe(audioURL: URL, model: String?, language: String?,
+    func transcribe(audioURL: URL, model: String?, language: String?, modelType: String? = nil,
                     completion: @escaping (Result<String, Error>) -> Void) {
         lock.lock()
         guard isReady else {
@@ -319,7 +358,7 @@ class WhisperBridge {
         var request: [String: Any] = [
             "action": "transcribe",
             "audio_path": audioURL.path,
-            "model_type": AppState.shared.selectedModel.modelType
+            "model_type": modelType ?? AppState.shared.selectedModel.modelType
         ]
         if let model = model, !model.isEmpty { request["model"] = model }
         if let lang = language, !lang.isEmpty, lang != "auto" { request["language"] = lang }
@@ -327,7 +366,7 @@ class WhisperBridge {
         if !prompt.isEmpty { request["initial_prompt"] = prompt }
         if AppState.shared.removeFillers { request["remove_fillers"] = true }
 
-        queueRequest(payload: request, timeout: Self.transcribeTimeout, label: "Transcribe") { result in
+        queueRequest(payload: request, timeout: requestTimeout, label: "Transcribe") { result in
             completion(result)
         }
     }
@@ -366,72 +405,19 @@ class WhisperBridge {
             let jsonData = try JSONSerialization.data(withJSONObject: request)
             var line = jsonData
             line.append(contentsOf: "\n".data(using: .utf8)!)
-            pipe.fileHandleForWriting.write(line)
+            try pipe.fileHandleForWriting.write(contentsOf: line)
         } catch {
             lock.lock()
             let context = pendingRequests.removeValue(forKey: id)
             lock.unlock()
-            context?.timeoutItem.cancel()
-            DispatchQueue.main.async { completion(.failure(error)) }
+            if let context {
+                context.timeoutItem.cancel()
+                DispatchQueue.main.async { context.completion(.failure(error)) }
+            }
             return
         }
 
         DispatchQueue.global().asyncAfter(deadline: .now() + timeout, execute: timeoutItem)
-    }
-
-    // MARK: - Warm-up helpers
-
-    private func warmUpBackend() {
-        DispatchQueue.global(qos: .utility).async { [weak self] in
-            guard let self = self else { return }
-            guard let audioURL = self.createWarmupAudio() else {
-                logWarn("WhisperBridge", "Warm-up audio unavailable")
-                return
-            }
-            var request: [String: Any] = [
-                "action": "transcribe",
-                "audio_path": audioURL.path,
-                "model_type": AppState.shared.selectedModel.modelType
-            ]
-            request["model"] = AppState.shared.resolvedModelPath
-
-            self.queueRequest(payload: request, timeout: Self.warmupTimeout, label: "Warm-up") { result in
-                switch result {
-                case .success(let text):
-                    logInfo("WhisperBridge", "Warm-up transcription produced \(text.count) chars")
-                case .failure(let error):
-                    logWarn("WhisperBridge", "Warm-up failed: \(error.localizedDescription)")
-                }
-                try? FileManager.default.removeItem(at: audioURL)
-            }
-        }
-    }
-
-    private func createWarmupAudio(duration: TimeInterval = 0.12, sampleRate: Double = 16000) -> URL? {
-        let frameCount = AVAudioFrameCount(max(1, Int(sampleRate * duration)))
-        guard let format = AVAudioFormat(standardFormatWithSampleRate: sampleRate, channels: 1),
-              let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frameCount) else {
-            return nil
-        }
-        buffer.frameLength = frameCount
-        if let channelData = buffer.floatChannelData?[0] {
-            let count = Int(buffer.frameLength)
-            for idx in 0..<count { channelData[idx] = 0 }
-        }
-
-        let warmupURL = FileManager.default.temporaryDirectory
-            .appendingPathComponent("typelessmlx_warmup.wav")
-        try? FileManager.default.removeItem(at: warmupURL)
-
-        do {
-            let file = try AVAudioFile(forWriting: warmupURL, settings: format.settings)
-            try file.write(from: buffer)
-            return warmupURL
-        } catch {
-            logWarn("WhisperBridge", "Failed to write warm-up audio: \(error.localizedDescription)")
-            try? FileManager.default.removeItem(at: warmupURL)
-            return nil
-        }
     }
 
     // MARK: - Idle Timer
@@ -463,7 +449,7 @@ class WhisperBridge {
             let data = try JSONSerialization.data(withJSONObject: request)
             var line = data
             line.append(contentsOf: "\n".data(using: .utf8)!)
-            pipe.fileHandleForWriting.write(line)
+            try pipe.fileHandleForWriting.write(contentsOf: line)
         } catch {}
     }
 
